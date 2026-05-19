@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import * as vision from "@mediapipe/tasks-vision";
 
-type Screen = "home" | "squat" | "history" | "progress" | "profile";
+type Screen = "splash" | "home" | "squat" | "history" | "progress" | "profile";
 type CameraFacing = "user" | "environment";
 
 type Stage =
@@ -36,7 +36,7 @@ type SessionData = {
 };
 
 export default function App() {
-  const [screen, setScreen] = useState<Screen>("home");
+  const [screen, setScreen] = useState<Screen>("splash");
   const [selectedExercise, setSelectedExercise] = useState("Agachamento");
   const [cameraFacing, setCameraFacing] = useState<CameraFacing>("environment");
 
@@ -57,9 +57,9 @@ export default function App() {
   const [repHistory, setRepHistory] = useState<RepData[]>([]);
   const [sessionHistory, setSessionHistory] = useState<SessionData[]>(() => {
     const saved = localStorage.getItem("moveup_history");
-  
+
     if (!saved) return [];
-  
+
     try {
       return JSON.parse(saved);
     } catch {
@@ -84,6 +84,16 @@ export default function App() {
   const baselineStandingAngleRef = useRef(170);
   const worstTorsoRef = useRef(0);
   const worstHipRef = useRef(0);
+
+  useEffect(() => {
+    if (screen !== "splash") return;
+
+    const timer = setTimeout(() => {
+      setScreen("home");
+    }, 2800);
+
+    return () => clearTimeout(timer);
+  }, [screen]);
 
   useEffect(() => {
     sessionFinishedRef.current = sessionFinished;
@@ -675,27 +685,66 @@ export default function App() {
     resetCalibration();
   }
 
-  function finishSession() {
-    setSessionFinished(true);
-  
+  function saveCurrentSession() {
     if (reps <= 0) {
       setFeedback("Finalize apenas depois de pelo menos 1 repetição válida.");
-      return;
+      return false;
     }
-  
+
     const newSession: SessionData = {
       reps,
       averageScore: averageScore || score,
       averageDepth,
       date: new Date().toLocaleString("pt-BR")
     };
-  
+
     setSessionHistory((prev) => [newSession, ...prev]);
+    return true;
   }
+
+  function finishSession() {
+    setSessionFinished(true);
+    saveCurrentSession();
+  }
+
   function goHome() {
+    if (reps > 0 && !sessionFinished) {
+      saveCurrentSession();
+    }
+
     setScreen("home");
     resetMotionRefs();
     resetCalibration();
+  }
+
+  if (screen === "splash") {
+    return (
+      <div style={splashPageStyle}>
+        <div style={splashGlowStyle} />
+
+        <div style={splashLogoCircleStyle}>
+          <div style={splashArrowStyle}>↗</div>
+          <div style={splashPersonStyle}>🏋️</div>
+        </div>
+
+        <h1 style={splashTitleStyle}>
+          Move<span style={{ color: "#3B82F6" }}>Up</span>
+        </h1>
+
+        <p style={splashSubtitleStyle}>IA que te move</p>
+
+        <div style={splashFeatureRowStyle}>
+          <span>🤖 Análise por IA</span>
+          <span>📈 Evolução real</span>
+        </div>
+
+        <div style={splashLoadingTrackStyle}>
+          <div style={splashLoadingBarStyle} />
+        </div>
+
+        <p style={splashLoadingTextStyle}>Preparando seu treino...</p>
+      </div>
+    );
   }
 
   if (screen === "home") {
@@ -761,7 +810,7 @@ export default function App() {
     return (
       <AppLayout active="history" setScreen={setScreen}>
         <h1>📊 Histórico</h1>
-  
+
         {sessionHistory.length === 0 ? (
           <p style={{ color: "#A1A1AA" }}>
             Nenhuma série salva ainda.
@@ -809,11 +858,12 @@ export default function App() {
     <div style={pageStyle}>
       <div
         style={{
-          width: 360,
-          height: 740,
-          borderRadius: 24,
+          width: "min(100vw, 430px)",
+          height: "100dvh",
+          minHeight: "100vh",
+          borderRadius: 0,
           overflow: "hidden",
-          border: "3px solid #2563EB",
+          border: "none",
           background: "black",
           position: "relative"
         }}
@@ -985,9 +1035,9 @@ function AppLayout({
   setScreen: (screen: Screen) => void;
 }) {
   return (
-    <div style={pageStyle}>
-      <div style={homeCardStyle}>
-        {children}
+    <div style={mobilePageStyle}>
+      <div style={appShellStyle}>
+        <div style={appContentStyle}>{children}</div>
         <BottomNav active={active} setScreen={setScreen} />
       </div>
     </div>
@@ -1070,9 +1120,141 @@ const pageStyle: React.CSSProperties = {
   display: "flex",
   justifyContent: "center",
   alignItems: "center",
-  padding: 20,
+  padding: 0,
   color: "white",
   fontFamily: "Arial"
+};
+
+const mobilePageStyle: React.CSSProperties = {
+  minHeight: "100dvh",
+  background: "#0B0F19",
+  display: "flex",
+  justifyContent: "center",
+  alignItems: "stretch",
+  color: "white",
+  fontFamily: "Arial",
+  overflow: "hidden"
+};
+
+const appShellStyle: React.CSSProperties = {
+  width: "min(100vw, 430px)",
+  minHeight: "100dvh",
+  background:
+    "radial-gradient(circle at top, rgba(37,99,235,0.16), transparent 34%), #0B0F19",
+  display: "flex",
+  flexDirection: "column",
+  position: "relative",
+  overflow: "hidden"
+};
+
+const appContentStyle: React.CSSProperties = {
+  flex: 1,
+  overflowY: "auto",
+  padding: "calc(28px + env(safe-area-inset-top)) 20px calc(96px + env(safe-area-inset-bottom))",
+  display: "flex",
+  flexDirection: "column",
+  justifyContent: "center"
+};
+
+const splashPageStyle: React.CSSProperties = {
+  minHeight: "100vh",
+  background:
+    "radial-gradient(circle at top, rgba(37,99,235,0.35), transparent 35%), linear-gradient(180deg, #07111F 0%, #0B0F19 100%)",
+  display: "flex",
+  flexDirection: "column",
+  justifyContent: "center",
+  alignItems: "center",
+  padding: 24,
+  color: "white",
+  fontFamily: "Arial",
+  position: "relative",
+  overflow: "hidden"
+};
+
+const splashGlowStyle: React.CSSProperties = {
+  position: "absolute",
+  width: 260,
+  height: 260,
+  borderRadius: "50%",
+  background: "rgba(37,99,235,0.18)",
+  filter: "blur(40px)",
+  top: "26%"
+};
+
+const splashLogoCircleStyle: React.CSSProperties = {
+  width: 150,
+  height: 150,
+  borderRadius: 36,
+  background: "linear-gradient(145deg, #0F172A, #020617)",
+  border: "1px solid rgba(96,165,250,0.45)",
+  display: "flex",
+  justifyContent: "center",
+  alignItems: "center",
+  position: "relative",
+  boxShadow: "0 0 40px rgba(37,99,235,0.35)",
+  marginBottom: 26
+};
+
+const splashArrowStyle: React.CSSProperties = {
+  position: "absolute",
+  fontSize: 74,
+  color: "#3B82F6",
+  transform: "rotate(10deg)",
+  opacity: 0.9
+};
+
+const splashPersonStyle: React.CSSProperties = {
+  fontSize: 58,
+  zIndex: 2,
+  filter: "drop-shadow(0 0 10px rgba(96,165,250,0.7))"
+};
+
+const splashTitleStyle: React.CSSProperties = {
+  fontSize: 44,
+  margin: 0,
+  letterSpacing: -1,
+  fontWeight: 900
+};
+
+const splashSubtitleStyle: React.CSSProperties = {
+  marginTop: 8,
+  color: "#CBD5E1",
+  letterSpacing: 4,
+  textTransform: "uppercase",
+  fontSize: 13
+};
+
+const splashFeatureRowStyle: React.CSSProperties = {
+  display: "flex",
+  gap: 12,
+  marginTop: 28,
+  fontSize: 12,
+  color: "#BFDBFE",
+  flexWrap: "wrap",
+  justifyContent: "center"
+};
+
+const splashLoadingTrackStyle: React.CSSProperties = {
+  width: 210,
+  height: 7,
+  background: "#0F172A",
+  borderRadius: 999,
+  overflow: "hidden",
+  marginTop: 34,
+  border: "1px solid #1E293B"
+};
+
+const splashLoadingBarStyle: React.CSSProperties = {
+  width: "68%",
+  height: "100%",
+  background: "linear-gradient(90deg, #2563EB, #60A5FA)",
+  borderRadius: 999
+};
+
+const splashLoadingTextStyle: React.CSSProperties = {
+  marginTop: 12,
+  color: "#94A3B8",
+  fontSize: 13
 };
 
 const homeCardStyle: React.CSSProperties = {
@@ -1121,11 +1303,18 @@ const switchCameraButtonStyle: React.CSSProperties = {
 };
 
 const bottomNavStyle: React.CSSProperties = {
-  marginTop: 28,
+  position: "fixed",
+  left: "50%",
+  bottom: 0,
+  transform: "translateX(-50%)",
+  width: "min(100vw, 430px)",
+  background: "rgba(15,23,42,0.96)",
+  backdropFilter: "blur(14px)",
   borderTop: "1px solid #1E293B",
-  paddingTop: 16,
+  padding: "12px 18px calc(12px + env(safe-area-inset-bottom))",
   display: "flex",
-  justifyContent: "space-around"
+  justifyContent: "space-around",
+  zIndex: 20
 };
 
 const listCardStyle: React.CSSProperties = {
