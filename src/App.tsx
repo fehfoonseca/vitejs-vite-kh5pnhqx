@@ -3,6 +3,15 @@
 import { useEffect, useRef, useState } from "react";
 import * as vision from "@mediapipe/tasks-vision";
 
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer
+} from "recharts";
+
 type Screen = "splash" | "home" | "squat" | "history" | "progress" | "profile";
 type CameraFacing = "user" | "environment";
 
@@ -830,12 +839,81 @@ export default function App() {
   }
 
   if (screen === "progress") {
+    const chartData = sessionHistory
+      .slice()
+      .reverse()
+      .map((item, index) => ({
+        treino: index + 1,
+        score: item.averageScore,
+        profundidade: item.averageDepth
+      }));
+  
+    const totalSessions = sessionHistory.length;
+  
+    const bestScore =
+      sessionHistory.length > 0
+        ? Math.max(...sessionHistory.map((item) => item.averageScore))
+        : 0;
+  
+    const overallAverage =
+      sessionHistory.length > 0
+        ? Math.round(
+            sessionHistory.reduce((acc, item) => acc + item.averageScore, 0) /
+              sessionHistory.length
+          )
+        : 0;
+  
+    const overallDepth =
+      sessionHistory.length > 0
+        ? Math.round(
+            sessionHistory.reduce((acc, item) => acc + item.averageDepth, 0) /
+              sessionHistory.length
+          )
+        : 0;
+  
     return (
       <AppLayout active="progress" setScreen={setScreen}>
-        <h1>📈 Evolução</h1>
-        <div style={listCardStyle}>
-          <p style={{ color: "#A1A1AA" }}>Score médio atual</p>
-          <h2>{averageScore || 0}</h2>
+        <h1 style={{ marginBottom: 6 }}>📈 Evolução</h1>
+  
+        <p style={{ color: "#A1A1AA", marginTop: 0 }}>
+          Acompanhe sua evolução treino após treino.
+        </p>
+  
+        <div style={statsGridStyle}>
+          <MetricCard title="Séries" value={`${totalSessions}`} />
+          <MetricCard title="Média" value={`${overallAverage}`} />
+          <MetricCard title="Melhor" value={`${bestScore}`} />
+          <MetricCard title="Prof." value={`${overallDepth}°`} />
+        </div>
+  
+        <div style={chartCardStyle}>
+          <div style={{ fontWeight: "bold", marginBottom: 12 }}>
+            Score por treino
+          </div>
+  
+          {chartData.length === 0 ? (
+            <p style={{ color: "#A1A1AA" }}>
+              Finalize uma série para ver sua evolução.
+            </p>
+          ) : (
+            <div style={{ width: "100%", height: 240 }}>
+              <ResponsiveContainer>
+                <LineChart data={chartData}>
+                  <XAxis dataKey="treino" stroke="#94A3B8" />
+                  <YAxis domain={[0, 100]} stroke="#94A3B8" />
+                  <Tooltip />
+  
+                  <Line
+                    type="monotone"
+                    dataKey="score"
+                    stroke="#3B82F6"
+                    strokeWidth={3}
+                    dot={{ r: 5 }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          )}
         </div>
       </AppLayout>
     );
@@ -1114,6 +1192,17 @@ function InfoCard({ title, value }: { title: string; value: string }) {
   );
 }
 
+function MetricCard({ title, value }: { title: string; value: string }) {
+  return (
+    <div style={metricCardStyle}>
+      <div style={{ color: "#A1A1AA", fontSize: 12 }}>{title}</div>
+      <div style={{ fontWeight: "bold", fontSize: 22, marginTop: 6 }}>
+        {value}
+      </div>
+    </div>
+  );
+}
+
 const pageStyle: React.CSSProperties = {
   minHeight: "100vh",
   background: "#0B0F19",
@@ -1322,4 +1411,26 @@ const gridStyle: React.CSSProperties = {
   gridTemplateColumns: "1fr 1fr 1fr",
   gap: 8,
   marginBottom: 10
+};
+
+const statsGridStyle: React.CSSProperties = {
+  display: "grid",
+  gridTemplateColumns: "1fr 1fr",
+  gap: 12,
+  marginTop: 18
+};
+
+const metricCardStyle: React.CSSProperties = {
+  background: "#0F172A",
+  border: "1px solid #1E293B",
+  borderRadius: 16,
+  padding: 14
+};
+
+const chartCardStyle: React.CSSProperties = {
+  background: "#0F172A",
+  border: "1px solid #1E293B",
+  borderRadius: 18,
+  padding: 16,
+  marginTop: 18
 };
