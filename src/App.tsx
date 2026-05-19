@@ -4,14 +4,28 @@ import { useEffect, useRef, useState } from "react";
 import * as vision from "@mediapipe/tasks-vision";
 
 type Screen = "home" | "squat" | "history" | "progress" | "profile";
-type Stage = "Aguardando corpo" | "Em pé" | "Descendo" | "Agachado" | "Subindo";
+type CameraFacing = "user" | "environment";
+
+type Stage =
+  | "Calibrando"
+  | "Aguardando corpo"
+  | "Em pé"
+  | "Descendo"
+  | "Agachado"
+  | "Subindo";
+
 type Phase = "waiting" | "standing" | "descending" | "bottom" | "ascending";
 
 type RepData = {
   depth: number;
   torso: number;
-  alignment: number;
+  hip: number;
+  speed: number;
   score: number;
+  depthScore: number;
+  torsoScore: number;
+  hipScore: number;
+  speedScore: number;
 };
 
 type SessionData = {
@@ -24,6 +38,7 @@ type SessionData = {
 export default function App() {
   const [screen, setScreen] = useState<Screen>("home");
   const [selectedExercise, setSelectedExercise] = useState("Agachamento");
+  const [cameraFacing, setCameraFacing] = useState<CameraFacing>("environment");
 
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -31,7 +46,9 @@ export default function App() {
   const [status, setStatus] = useState("Carregando IA...");
   const [kneeAngle, setKneeAngle] = useState<number | null>(null);
   const [torsoAngle, setTorsoAngle] = useState<number | null>(null);
-  const [kneeAlignment, setKneeAlignment] = useState("--");
+  const [hipMetric, setHipMetric] = useState<number | null>(null);
+  const [speedSeconds, setSpeedSeconds] = useState<number | null>(null);
+
   const [stage, setStage] = useState<Stage>("Aguardando corpo");
   const [reps, setReps] = useState(0);
   const [score, setScore] = useState(0);
@@ -39,19 +56,32 @@ export default function App() {
   const [sessionFinished, setSessionFinished] = useState(false);
   const [repHistory, setRepHistory] = useState<RepData[]>([]);
   const [sessionHistory, setSessionHistory] = useState<SessionData[]>([]);
+  const [calibrationProgress, setCalibrationProgress] = useState(0);
+  const [calibrated, setCalibrated] = useState(false);
 
   const phaseRef = useRef<Phase>("waiting");
   const lowestAngleRef = useRef(180);
   const lastRepTimeRef = useRef(0);
+  const descentStartTimeRef = useRef(0);
   const sessionFinishedRef = useRef(false);
   const angleBufferRef = useRef<number[]>([]);
   const standingFramesRef = useRef(0);
   const bottomFramesRef = useRef(0);
   const returnStandingFramesRef = useRef(0);
 
+  const calibrationFramesRef = useRef<number[]>([]);
+  const calibratedRef = useRef(false);
+  const baselineStandingAngleRef = useRef(170);
+  const worstTorsoRef = useRef(0);
+  const worstHipRef = useRef(0);
+
   useEffect(() => {
     sessionFinishedRef.current = sessionFinished;
   }, [sessionFinished]);
+
+  useEffect(() => {
+    calibratedRef.current = calibrated;
+  }, [calibrated]);
 
   useEffect(() => {
     if (screen !== "squat") return;
@@ -64,7 +94,9 @@ export default function App() {
         setStatus("Pedindo acesso à câmera...");
 
         const stream = await navigator.mediaDevices.getUserMedia({
-          video: true,
+          video: {
+            facingMode: cameraFacing
+          },
           audio: false
         });
 
@@ -89,10 +121,14 @@ export default function App() {
           numPoses: 1
         });
 
-        setStatus("IA ativa 🔥");
+        setStatus(
+          cameraFacing === "environment"
+            ? "IA ativa 🔥 câmera traseira"
+            : "IA ativa 🔥 câmera frontal"
+        );
+
         detectPose();
       } catch (error: any) {
-        console.error(error);
         setStatus(`Erro: ${error?.message || "falha ao iniciar câmera ou IA"}`);
       }
     }
@@ -136,53 +172,59 @@ export default function App() {
           radius: 4
         });
 
-        if (!isFullBodyVisible(landmarks)) {
+        const side = getBestSide(landmarks);
+
+        if (!side) {
           resetMotionRefs();
+          resetCalibration();
+
           setStage("Aguardando corpo");
-          setFeedback("Afaste o celular até aparecer corpo inteiro.");
+          setFeedback("Fique totalmente de lado, em pé e parado para calibrar.");
+
           setKneeAngle(null);
           setTorsoAngle(null);
-          setKneeAlignment("--");
+          setHipMetric(null);
           setScore(0);
+
           animationFrameId = requestAnimationFrame(detectPose);
           return;
         }
 
         const rawKneeAngle = Math.round(
-          (calculateAngle(landmarks[23], landmarks[25], landmarks[27]) +
-            calculateAngle(landmarks[24], landmarks[26], landmarks[28])) /
-            2
+          calculateAngle(side.hip, side.knee, side.ankle)
         );
 
         const avgKneeAngle = smoothAngle(rawKneeAngle);
 
         const avgTorsoAngle = Math.round(
-          (calculateTorsoAngle(landmarks[11], landmarks[23]) +
-            calculateTorsoAngle(landmarks[12], landmarks[24])) /
-            2
+          calculateTorsoAngle(side.shoulder, side.hip)
         );
 
-        const alignmentScore = calculateKneeAlignment(
-          landmarks[23],
-          landmarks[24],
-          landmarks[25],
-          landmarks[26],
-          landmarks[27],
-          landmarks[28]
+        const hipValue = Math.round(
+          calculateHipShift(side.hip, side.knee, side.ankle) * 100
         );
-
-        const alignmentLabel =
-          alignmentScore >= 80 ? "Bom" : alignmentScore >= 55 ? "Atenção" : "Fechando";
 
         setKneeAngle(avgKneeAngle);
         setTorsoAngle(avgTorsoAngle);
-        setKneeAlignment(alignmentLabel);
+        setHipMetric(hipValue);
 
-        const currentScore = calculateScore(avgKneeAngle, avgTorsoAngle, alignmentScore);
-        setScore(currentScore);
+        const currentScoreParts = calculateScoreParts(
+          avgKneeAngle,
+          avgTorsoAngle,
+          hipValue,
+          null
+        );
+
+        setScore(currentScoreParts.total);
+
+        if (!calibratedRef.current) {
+          runCalibration(avgKneeAngle);
+          animationFrameId = requestAnimationFrame(detectPose);
+          return;
+        }
 
         if (!sessionFinishedRef.current) {
-          updateRepState(avgKneeAngle, avgTorsoAngle, alignmentScore, currentScore);
+          updateRepState(avgKneeAngle, avgTorsoAngle, hipValue);
         }
       }
 
@@ -203,17 +245,113 @@ export default function App() {
         poseLandmarker.close();
       }
     };
-  }, [screen]);
+  }, [screen, cameraFacing]);
 
-  function updateRepState(angle: number, torso: number, alignment: number, currentScore: number) {
+  function switchCamera() {
+    setCameraFacing((prev) => (prev === "user" ? "environment" : "user"));
+
+    setKneeAngle(null);
+    setTorsoAngle(null);
+    setHipMetric(null);
+    setScore(0);
+    setSpeedSeconds(null);
+    setFeedback("Trocando câmera...");
+    resetMotionRefs();
+    resetCalibration();
+  }
+
+  function getBestSide(landmarks: any[]) {
+    const right = {
+      shoulder: landmarks[12],
+      hip: landmarks[24],
+      knee: landmarks[26],
+      ankle: landmarks[28]
+    };
+
+    const left = {
+      shoulder: landmarks[11],
+      hip: landmarks[23],
+      knee: landmarks[25],
+      ankle: landmarks[27]
+    };
+
+    const rightVisibility = averageVisibility([
+      right.shoulder,
+      right.hip,
+      right.knee,
+      right.ankle
+    ]);
+
+    const leftVisibility = averageVisibility([
+      left.shoulder,
+      left.hip,
+      left.knee,
+      left.ankle
+    ]);
+
+    if (rightVisibility < 0.35 && leftVisibility < 0.35) return null;
+
+    return rightVisibility >= leftVisibility ? right : left;
+  }
+
+  function averageVisibility(points: any[]) {
+    const valid = points.filter(
+      (point) => point && point.visibility !== undefined
+    );
+
+    if (valid.length === 0) return 0;
+
+    return (
+      valid.reduce((acc, point) => acc + point.visibility, 0) / valid.length
+    );
+  }
+
+  function runCalibration(angle: number) {
+    setStage("Calibrando");
+
+    if (angle < 155) {
+      calibrationFramesRef.current = [];
+      setCalibrationProgress(0);
+      setFeedback("Fique em pé e parado de lado para calibrar a IA.");
+      return;
+    }
+
+    calibrationFramesRef.current.push(angle);
+
+    if (calibrationFramesRef.current.length > 45) {
+      calibrationFramesRef.current.shift();
+    }
+
+    const progress = Math.round((calibrationFramesRef.current.length / 45) * 100);
+    setCalibrationProgress(progress);
+    setFeedback(`Calibrando IA... fique parado em pé (${progress}%).`);
+
+    if (calibrationFramesRef.current.length >= 45) {
+      const avg =
+        calibrationFramesRef.current.reduce((acc, value) => acc + value, 0) /
+        calibrationFramesRef.current.length;
+
+      baselineStandingAngleRef.current = Math.round(avg);
+      calibratedRef.current = true;
+      setCalibrated(true);
+      setCalibrationProgress(100);
+      setStage("Em pé");
+      setFeedback("Calibração concluída! Agora comece o agachamento.");
+    }
+  }
+
+  function updateRepState(angle: number, torso: number, hip: number) {
     const now = Date.now();
 
-    if (angle > 165) standingFramesRef.current += 1;
+    const standingThreshold = Math.max(160, baselineStandingAngleRef.current - 8);
+    const startDescentThreshold = baselineStandingAngleRef.current - 25;
+
+    if (angle > standingThreshold) standingFramesRef.current += 1;
     else standingFramesRef.current = 0;
 
     if (phaseRef.current === "waiting") {
       setStage("Aguardando corpo");
-      setFeedback("Fique em pé e enquadre o corpo inteiro.");
+      setFeedback("Fique em pé de lado e enquadre o corpo inteiro.");
 
       if (standingFramesRef.current >= 12) {
         phaseRef.current = "standing";
@@ -228,9 +366,12 @@ export default function App() {
       setStage("Em pé");
       setFeedback("Boa posição inicial. Agora desça com controle.");
 
-      if (angle < 145) {
+      if (angle < startDescentThreshold) {
         phaseRef.current = "descending";
         lowestAngleRef.current = angle;
+        worstTorsoRef.current = torso;
+        worstHipRef.current = hip;
+        descentStartTimeRef.current = now;
       }
 
       return;
@@ -238,16 +379,20 @@ export default function App() {
 
     if (phaseRef.current === "descending") {
       setStage("Descendo");
-      setFeedback("Continue descendo...");
+      setFeedback("Continue descendo com controle.");
 
-      if (angle < lowestAngleRef.current) lowestAngleRef.current = angle;
+      if (angle < lowestAngleRef.current) {
+        lowestAngleRef.current = angle;
+        worstTorsoRef.current = torso;
+        worstHipRef.current = hip;
+      }
 
-      if (angle <= 120) bottomFramesRef.current += 1;
+      if (angle <= 115) bottomFramesRef.current += 1;
       else bottomFramesRef.current = 0;
 
       if (bottomFramesRef.current >= 5) phaseRef.current = "bottom";
 
-      if (angle > 165) {
+      if (angle > standingThreshold) {
         resetMotionRefs();
         phaseRef.current = "standing";
       }
@@ -258,11 +403,19 @@ export default function App() {
     if (phaseRef.current === "bottom") {
       setStage("Agachado");
 
-      if (angle < lowestAngleRef.current) lowestAngleRef.current = angle;
+      if (angle < lowestAngleRef.current) {
+        lowestAngleRef.current = angle;
+        worstTorsoRef.current = torso;
+        worstHipRef.current = hip;
+      }
 
-      if (alignment < 55) setFeedback("Joelhos estão fechando.");
-      else if (torso > 35) setFeedback("Tente manter o peito mais aberto.");
-      else setFeedback("Boa profundidade! Agora suba.");
+      if (hip < 40) {
+        setFeedback("Quadril foi muito para trás. Tente manter mais controle.");
+      } else if (torso > 28) {
+        setFeedback("Tente manter o peito mais aberto.");
+      } else {
+        setFeedback("Boa profundidade! Agora suba.");
+      }
 
       if (angle > 125) phaseRef.current = "ascending";
 
@@ -273,23 +426,43 @@ export default function App() {
       setStage("Subindo");
       setFeedback("Suba mantendo controle.");
 
-      if (angle > 165) returnStandingFramesRef.current += 1;
+      if (angle > standingThreshold) returnStandingFramesRef.current += 1;
       else returnStandingFramesRef.current = 0;
 
       if (
         returnStandingFramesRef.current >= 8 &&
-        lowestAngleRef.current <= 120 &&
+        lowestAngleRef.current <= 115 &&
         now - lastRepTimeRef.current > 1800
       ) {
+        const finalDepth = lowestAngleRef.current;
+        const durationSeconds = (now - descentStartTimeRef.current) / 1000;
+
+        const finalTorso = worstTorsoRef.current;
+        const finalHip = worstHipRef.current;
+
+        const repScoreParts = calculateScoreParts(
+          finalDepth,
+          finalTorso,
+          finalHip,
+          durationSeconds
+        );
+
+        setSpeedSeconds(Number(durationSeconds.toFixed(1)));
+
         setReps((prev) => prev + 1);
 
         setRepHistory((prev) => [
           ...prev,
           {
-            depth: lowestAngleRef.current,
-            torso,
-            alignment,
-            score: currentScore
+            depth: finalDepth,
+            torso: finalTorso,
+            hip: finalHip,
+            speed: Number(durationSeconds.toFixed(1)),
+            score: repScoreParts.total,
+            depthScore: repScoreParts.depthScore,
+            torsoScore: repScoreParts.torsoScore,
+            hipScore: repScoreParts.hipScore,
+            speedScore: repScoreParts.speedScore
           }
         ]);
 
@@ -302,6 +475,75 @@ export default function App() {
     }
   }
 
+  function calculateHipShift(hip: any, knee: any, ankle: any) {
+    const bodyScale = Math.abs(hip.y - ankle.y) || 0.1;
+
+    const hipBehindKnee = Math.abs(hip.x - knee.x);
+    const hipBehindAnkle = Math.abs(hip.x - ankle.x);
+
+    return Math.max(hipBehindKnee, hipBehindAnkle) / bodyScale;
+  }
+
+  function calculateScoreParts(
+    knee: number,
+    torso: number,
+    hip: number,
+    durationSeconds: number | null
+  ) {
+    let depthScore = 0;
+    let torsoScore = 0;
+    let hipScore = 0;
+    let speedScore = 0;
+
+    if (knee <= 85) depthScore = 40;
+    else if (knee <= 95) depthScore = 34;
+    else if (knee <= 105) depthScore = 24;
+    else if (knee <= 115) depthScore = 12;
+    else if (knee <= 130) depthScore = 4;
+    else depthScore = 0;
+
+    if (torso <= 12) torsoScore = 25;
+    else if (torso <= 17) torsoScore = 20;
+    else if (torso <= 22) torsoScore = 13;
+    else if (torso <= 30) torsoScore = 6;
+    else torsoScore = 2;
+
+    if (hip >= 100) hipScore = 20;
+    else if (hip >= 80) hipScore = 15;
+    else if (hip >= 60) hipScore = 9;
+    else if (hip >= 40) hipScore = 4;
+    else hipScore = 0;
+
+    if (durationSeconds === null) {
+      speedScore = 15;
+    } else if (durationSeconds >= 2.2 && durationSeconds <= 5.0) {
+      speedScore = 15;
+    } else if (durationSeconds >= 1.6 && durationSeconds < 2.2) {
+      speedScore = 10;
+    } else if (durationSeconds > 5.0 && durationSeconds <= 7.0) {
+      speedScore = 10;
+    } else if (durationSeconds >= 1.1 && durationSeconds < 1.6) {
+      speedScore = 5;
+    } else {
+      speedScore = 2;
+    }
+
+    return {
+      depthScore,
+      torsoScore,
+      hipScore,
+      speedScore,
+      total: depthScore + torsoScore + hipScore + speedScore
+    };
+  }
+
+  function resetCalibration() {
+    calibrationFramesRef.current = [];
+    calibratedRef.current = false;
+    setCalibrated(false);
+    setCalibrationProgress(0);
+  }
+
   function resetMotionRefs() {
     phaseRef.current = "waiting";
     lowestAngleRef.current = 180;
@@ -309,15 +551,9 @@ export default function App() {
     bottomFramesRef.current = 0;
     returnStandingFramesRef.current = 0;
     angleBufferRef.current = [];
-  }
-
-  function isFullBodyVisible(landmarks: any[]) {
-    const importantPoints = [11, 12, 23, 24, 25, 26, 27, 28];
-
-    return importantPoints.every((index) => {
-      const point = landmarks[index];
-      return point && point.visibility !== undefined && point.visibility > 0.55;
-    });
+    descentStartTimeRef.current = 0;
+    worstTorsoRef.current = 0;
+    worstHipRef.current = 0;
   }
 
   function smoothAngle(angle: number) {
@@ -345,67 +581,67 @@ export default function App() {
   function calculateTorsoAngle(shoulder: any, hip: any) {
     const dx = shoulder.x - hip.x;
     const dy = shoulder.y - hip.y;
-    const radians = Math.atan2(Math.abs(dx), Math.abs(dy));
 
-    return (radians * 180) / Math.PI;
-  }
-
-  function calculateKneeAlignment(
-    leftHip: any,
-    rightHip: any,
-    leftKnee: any,
-    rightKnee: any,
-    leftAnkle: any,
-    rightAnkle: any
-  ) {
-    const hipWidth = Math.abs(leftHip.x - rightHip.x);
-    const kneeWidth = Math.abs(leftKnee.x - rightKnee.x);
-    const ankleWidth = Math.abs(leftAnkle.x - rightAnkle.x);
-
-    if (hipWidth === 0 || ankleWidth === 0) return 50;
-
-    const expectedWidth = (hipWidth + ankleWidth) / 2;
-    const ratio = kneeWidth / expectedWidth;
-
-    if (ratio >= 0.9) return 100;
-    if (ratio >= 0.8) return 80;
-    if (ratio >= 0.7) return 60;
-    if (ratio >= 0.6) return 40;
-
-    return 20;
-  }
-
-  function calculateScore(knee: number, torso: number, alignment: number) {
-    let depthScore = 0;
-    let torsoScore = 0;
-    let alignmentFinal = 0;
-
-    if (knee <= 95) depthScore = 45;
-    else if (knee <= 105) depthScore = 42;
-    else if (knee <= 120) depthScore = 35;
-    else if (knee <= 140) depthScore = 20;
-    else depthScore = 10;
-
-    if (torso <= 20) torsoScore = 30;
-    else if (torso <= 30) torsoScore = 24;
-    else if (torso <= 40) torsoScore = 16;
-    else torsoScore = 8;
-
-    if (alignment >= 80) alignmentFinal = 25;
-    else if (alignment >= 55) alignmentFinal = 15;
-    else alignmentFinal = 5;
-
-    return depthScore + torsoScore + alignmentFinal;
+    const radians = Math.atan2(dx, Math.abs(dy));
+    return Math.abs((radians * 180) / Math.PI);
   }
 
   const averageScore =
     repHistory.length > 0
-      ? Math.round(repHistory.reduce((acc, rep) => acc + rep.score, 0) / repHistory.length)
+      ? Math.round(
+          repHistory.reduce((acc, rep) => acc + rep.score, 0) /
+            repHistory.length
+        )
       : 0;
 
   const averageDepth =
     repHistory.length > 0
-      ? Math.round(repHistory.reduce((acc, rep) => acc + rep.depth, 0) / repHistory.length)
+      ? Math.round(
+          repHistory.reduce((acc, rep) => acc + rep.depth, 0) /
+            repHistory.length
+        )
+      : 0;
+
+  const averageDepthScore =
+    repHistory.length > 0
+      ? Math.round(
+          repHistory.reduce((acc, rep) => acc + rep.depthScore, 0) /
+            repHistory.length
+        )
+      : 0;
+
+  const averageTorsoScore =
+    repHistory.length > 0
+      ? Math.round(
+          repHistory.reduce((acc, rep) => acc + rep.torsoScore, 0) /
+            repHistory.length
+        )
+      : 0;
+
+  const averageHipScore =
+    repHistory.length > 0
+      ? Math.round(
+          repHistory.reduce((acc, rep) => acc + rep.hipScore, 0) /
+            repHistory.length
+        )
+      : 0;
+
+  const averageSpeedScore =
+    repHistory.length > 0
+      ? Math.round(
+          repHistory.reduce((acc, rep) => acc + rep.speedScore, 0) /
+            repHistory.length
+        )
+      : 0;
+
+  const averageSpeed =
+    repHistory.length > 0
+      ? Number(
+          (
+            repHistory.reduce((acc, rep) => acc + rep.speed, 0) /
+            repHistory.length
+          ).toFixed(1)
+        )
       : 0;
 
   function startExercise() {
@@ -420,7 +656,9 @@ export default function App() {
     setSessionFinished(false);
     setFeedback("Posicione o corpo inteiro na câmera.");
     setScore(0);
+    setSpeedSeconds(null);
     resetMotionRefs();
+    resetCalibration();
   }
 
   function finishSession() {
@@ -441,6 +679,7 @@ export default function App() {
   function goHome() {
     setScreen("home");
     resetMotionRefs();
+    resetCalibration();
   }
 
   if (screen === "home") {
@@ -506,21 +745,7 @@ export default function App() {
     return (
       <AppLayout active="history" setScreen={setScreen}>
         <h1>📊 Histórico</h1>
-
-        {sessionHistory.length === 0 ? (
-          <p style={{ color: "#A1A1AA" }}>
-            Nenhuma série finalizada ainda.
-          </p>
-        ) : (
-          sessionHistory.map((item, index) => (
-            <div key={index} style={listCardStyle}>
-              <strong>{item.date}</strong>
-              <p>Reps: {item.reps}</p>
-              <p>Score médio: {item.averageScore}</p>
-              <p>Profundidade média: {item.averageDepth}°</p>
-            </div>
-          ))
-        )}
+        <p style={{ color: "#A1A1AA" }}>As séries finalizadas aparecem aqui.</p>
       </AppLayout>
     );
   }
@@ -529,15 +754,9 @@ export default function App() {
     return (
       <AppLayout active="progress" setScreen={setScreen}>
         <h1>📈 Evolução</h1>
-
         <div style={listCardStyle}>
           <p style={{ color: "#A1A1AA" }}>Score médio atual</p>
           <h2>{averageScore || 0}</h2>
-        </div>
-
-        <div style={listCardStyle}>
-          <p style={{ color: "#A1A1AA" }}>Total de séries salvas</p>
-          <h2>{sessionHistory.length}</h2>
         </div>
       </AppLayout>
     );
@@ -547,7 +766,6 @@ export default function App() {
     return (
       <AppLayout active="profile" setScreen={setScreen}>
         <h1>👤 Perfil</h1>
-
         <div style={listCardStyle}>
           <p>Usuário: Felipe</p>
           <p>Nível: Iniciante</p>
@@ -583,6 +801,10 @@ export default function App() {
 
         <button onClick={goHome} style={homeButtonStyle}>
           ← Tela inicial
+        </button>
+
+        <button onClick={switchCamera} style={switchCameraButtonStyle}>
+          🔄 Câmera
         </button>
 
         <div
@@ -632,9 +854,29 @@ export default function App() {
 
           <div style={gridStyle}>
             <InfoCard title="Tronco" value={torsoAngle ? `${torsoAngle}°` : "--"} />
-            <InfoCard title="Joelhos" value={kneeAlignment} />
-            <InfoCard title="Média" value={`${averageScore}`} />
+            <InfoCard title="Quadril" value={hipMetric !== null ? `${hipMetric}` : "--"} />
+            <InfoCard title="Tempo" value={speedSeconds ? `${speedSeconds}s` : "--"} />
           </div>
+
+          {!calibrated && (
+            <div
+              style={{
+                height: 8,
+                background: "#0F172A",
+                borderRadius: 999,
+                overflow: "hidden",
+                marginBottom: 10
+              }}
+            >
+              <div
+                style={{
+                  height: "100%",
+                  width: `${calibrationProgress}%`,
+                  background: "#3B82F6"
+                }}
+              />
+            </div>
+          )}
 
           <div
             style={{
@@ -660,14 +902,16 @@ export default function App() {
               <div>Repetições: {reps}</div>
               <div>Score médio: {averageScore}</div>
               <div>Profundidade média: {averageDepth}°</div>
+              <div>Tempo médio: {averageSpeed}s</div>
 
-              <div style={{ marginTop: 10, color: "#60A5FA" }}>
-                {averageScore >= 85
-                  ? "Excelente execução!"
-                  : averageScore >= 70
-                  ? "Boa execução!"
-                  : "Continue treinando para melhorar sua técnica."}
+              <div style={{ marginTop: 10 }}>
+                <strong>Detalhamento da nota:</strong>
               </div>
+
+              <div>Profundidade: {averageDepthScore}/40</div>
+              <div>Tronco: {averageTorsoScore}/25</div>
+              <div>Quadril: {averageHipScore}/20</div>
+              <div>Velocidade: {averageSpeedScore}/15</div>
 
               <button
                 onClick={() => {
@@ -676,7 +920,9 @@ export default function App() {
                   setSessionFinished(false);
                   setFeedback("Nova série iniciada 🔥");
                   setScore(0);
+                  setSpeedSeconds(null);
                   resetMotionRefs();
+                  resetCalibration();
                   lastRepTimeRef.current = Date.now();
                 }}
                 style={{
@@ -735,17 +981,7 @@ function BottomNav({
   );
 }
 
-function NavButton({
-  icon,
-  label,
-  active,
-  onClick
-}: {
-  icon: string;
-  label: string;
-  active: boolean;
-  onClick: () => void;
-}) {
+function NavButton({ icon, label, active, onClick }: any) {
   return (
     <button
       onClick={onClick}
@@ -757,8 +993,7 @@ function NavButton({
         flexDirection: "column",
         alignItems: "center",
         gap: 4,
-        fontSize: 12,
-        cursor: "pointer"
+        fontSize: 12
       }}
     >
       <span>{icon}</span>
@@ -767,19 +1002,7 @@ function NavButton({
   );
 }
 
-function ExerciseCard({
-  name,
-  emoji,
-  active,
-  available,
-  onClick
-}: {
-  name: string;
-  emoji: string;
-  active: boolean;
-  available: boolean;
-  onClick: () => void;
-}) {
+function ExerciseCard({ name, emoji, active, available, onClick }: any) {
   return (
     <button
       onClick={onClick}
@@ -790,20 +1013,12 @@ function ExerciseCard({
         padding: 16,
         color: "white",
         textAlign: "left",
-        minHeight: 110,
-        position: "relative",
-        cursor: "pointer"
+        minHeight: 110
       }}
     >
       <div style={{ fontSize: 28 }}>{emoji}</div>
       <div style={{ fontWeight: "bold", marginTop: 10 }}>{name}</div>
-      <div
-        style={{
-          color: available ? "#60A5FA" : "#A1A1AA",
-          fontSize: 12,
-          marginTop: 4
-        }}
-      >
+      <div style={{ color: available ? "#60A5FA" : "#A1A1AA", fontSize: 12 }}>
         {available ? "Disponível" : "Em breve"}
       </div>
     </button>
@@ -812,18 +1027,9 @@ function ExerciseCard({
 
 function InfoCard({ title, value }: { title: string; value: string }) {
   return (
-    <div
-      style={{
-        background: "#0F172A",
-        border: "1px solid #1E293B",
-        borderRadius: 12,
-        padding: 8
-      }}
-    >
+    <div style={{ background: "#0F172A", border: "1px solid #1E293B", borderRadius: 12, padding: 8 }}>
       <div style={{ color: "#A1A1AA", fontSize: 11 }}>{title}</div>
-      <div style={{ fontWeight: "bold", fontSize: 14, marginTop: 4 }}>
-        {value}
-      </div>
+      <div style={{ fontWeight: "bold", fontSize: 14, marginTop: 4 }}>{value}</div>
     </div>
   );
 }
@@ -844,8 +1050,7 @@ const homeCardStyle: React.CSSProperties = {
   maxWidth: 420,
   background: "#111827",
   borderRadius: 28,
-  padding: 24,
-  boxShadow: "0 0 30px rgba(0,0,0,0.35)"
+  padding: 24
 };
 
 const primaryButtonStyle: React.CSSProperties = {
@@ -856,8 +1061,7 @@ const primaryButtonStyle: React.CSSProperties = {
   background: "#2563EB",
   color: "white",
   fontWeight: "bold",
-  marginTop: 18,
-  cursor: "pointer"
+  marginTop: 18
 };
 
 const homeButtonStyle: React.CSSProperties = {
@@ -870,9 +1074,20 @@ const homeButtonStyle: React.CSSProperties = {
   border: "none",
   borderRadius: 14,
   padding: "10px 14px",
-  fontWeight: "bold",
-  cursor: "pointer",
-  boxShadow: "0 0 18px rgba(37,99,235,0.45)"
+  fontWeight: "bold"
+};
+
+const switchCameraButtonStyle: React.CSSProperties = {
+  position: "absolute",
+  top: 18,
+  right: 18,
+  zIndex: 10,
+  background: "#111827",
+  color: "white",
+  border: "1px solid #3B82F6",
+  borderRadius: 14,
+  padding: "10px 14px",
+  fontWeight: "bold"
 };
 
 const bottomNavStyle: React.CSSProperties = {
