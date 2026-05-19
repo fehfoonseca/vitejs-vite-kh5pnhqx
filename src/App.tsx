@@ -1257,14 +1257,6 @@ const splashLoadingTextStyle: React.CSSProperties = {
   fontSize: 13
 };
 
-const homeCardStyle: React.CSSProperties = {
-  width: "100%",
-  maxWidth: 420,
-  background: "#111827",
-  borderRadius: 28,
-  padding: 24
-};
-
 const primaryButtonStyle: React.CSSProperties = {
   width: "100%",
   padding: 14,
