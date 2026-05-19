@@ -55,7 +55,7 @@ export default function App() {
   const [feedback, setFeedback] = useState("Posicione o corpo inteiro na câmera.");
   const [sessionFinished, setSessionFinished] = useState(false);
   const [repHistory, setRepHistory] = useState<RepData[]>([]);
-  const [sessionHistory, setSessionHistory] = useState<SessionData[]>([]);
+  const [, setSessionHistory] = useState<SessionData[]>([]);
   const [calibrationProgress, setCalibrationProgress] = useState(0);
   const [calibrated, setCalibrated] = useState(false);
 
