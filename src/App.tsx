@@ -55,7 +55,17 @@ export default function App() {
   const [feedback, setFeedback] = useState("Posicione o corpo inteiro na câmera.");
   const [sessionFinished, setSessionFinished] = useState(false);
   const [repHistory, setRepHistory] = useState<RepData[]>([]);
-  const [, setSessionHistory] = useState<SessionData[]>([]);
+  const [sessionHistory, setSessionHistory] = useState<SessionData[]>(() => {
+    const saved = localStorage.getItem("moveup_history");
+  
+    if (!saved) return [];
+  
+    try {
+      return JSON.parse(saved);
+    } catch {
+      return [];
+    }
+  });
   const [calibrationProgress, setCalibrationProgress] = useState(0);
   const [calibrated, setCalibrated] = useState(false);
 
@@ -82,6 +92,10 @@ export default function App() {
   useEffect(() => {
     calibratedRef.current = calibrated;
   }, [calibrated]);
+
+  useEffect(() => {
+    localStorage.setItem("moveup_history", JSON.stringify(sessionHistory));
+  }, [sessionHistory]);
 
   useEffect(() => {
     if (screen !== "squat") return;
@@ -663,19 +677,21 @@ export default function App() {
 
   function finishSession() {
     setSessionFinished(true);
-
-    if (repHistory.length > 0) {
-      const newSession: SessionData = {
-        reps,
-        averageScore,
-        averageDepth,
-        date: new Date().toLocaleDateString("pt-BR")
-      };
-
-      setSessionHistory((prev) => [newSession, ...prev]);
+  
+    if (reps <= 0) {
+      setFeedback("Finalize apenas depois de pelo menos 1 repetição válida.");
+      return;
     }
+  
+    const newSession: SessionData = {
+      reps,
+      averageScore: averageScore || score,
+      averageDepth,
+      date: new Date().toLocaleString("pt-BR")
+    };
+  
+    setSessionHistory((prev) => [newSession, ...prev]);
   }
-
   function goHome() {
     setScreen("home");
     resetMotionRefs();
@@ -745,7 +761,21 @@ export default function App() {
     return (
       <AppLayout active="history" setScreen={setScreen}>
         <h1>📊 Histórico</h1>
-        <p style={{ color: "#A1A1AA" }}>As séries finalizadas aparecem aqui.</p>
+  
+        {sessionHistory.length === 0 ? (
+          <p style={{ color: "#A1A1AA" }}>
+            Nenhuma série salva ainda.
+          </p>
+        ) : (
+          sessionHistory.map((item, index) => (
+            <div key={index} style={listCardStyle}>
+              <strong>{item.date}</strong>
+              <p>Repetições: {item.reps}</p>
+              <p>Score médio: {item.averageScore}</p>
+              <p>Profundidade média: {item.averageDepth}°</p>
+            </div>
+          ))
+        )}
       </AppLayout>
     );
   }
