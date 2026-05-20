@@ -1643,128 +1643,6 @@ const introChecklistStyle: React.CSSProperties = {
                         marginBottom: 24
                       };
                       
-                      const onboardingTitleStyle: React.CSSProperties = {
-                        fontSize: 42,
-                        lineHeight: 1.05,
-                        margin: 0,
-                        fontWeight: 800
-                      };
-                      
-                      const onboardingDescriptionStyle: React.CSSProperties = {
-                        color: "#94A3B8",
-                        fontSize: 17,
-                        lineHeight: 1.5,
-                        marginTop: 18
-                      };
-                      
-                      const onboardingImageStyle: React.CSSProperties = {
-                        flex: 1,
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        fontSize: 140
-                      };
-                      
-                      const onboardingDotsStyle: React.CSSProperties = {
-                        display: "flex",
-                        justifyContent: "center",
-                        gap: 10,
-                        marginBottom: 28
-                      };
-                      
-                      const onboardingDotStyle: React.CSSProperties = {
-                        height: 10,
-                        borderRadius: 999,
-                        transition: "0.3s"
-                      };
-                      
-                      const onboardingButtonStyle: React.CSSProperties = {
-                        width: "100%",
-                        height: 58,
-                        borderRadius: 18,
-                        border: "none",
-                        background: "#2563EB",
-                        color: "white",
-                        fontSize: 18,
-                        fontWeight: 700
-                      };
-                      const premiumOnboardingPageStyle: React.CSSProperties = {
-                        minHeight: "100vh",
-                        background:
-                          "radial-gradient(circle at top, rgba(37,99,235,0.28), transparent 35%), #020617",
-                        display: "flex",
-                        justifyContent: "center",
-                        alignItems: "center",
-                        padding: 22,
-                        color: "white",
-                        fontFamily: "Arial"
-                      };
-                      
-                      const premiumGlowStyle: React.CSSProperties = {
-                        position: "absolute",
-                        width: 260,
-                        height: 260,
-                        borderRadius: "50%",
-                        background: "rgba(37,99,235,0.18)",
-                        filter: "blur(70px)",
-                        top: 80
-                      };
-                      
-                      
-                      
-                      const premiumTopBarStyle: React.CSSProperties = {
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                        marginBottom: 26
-                      };
-                      
-                      const premiumDotsWrapperStyle: React.CSSProperties = {
-                        display: "flex",
-                        gap: 8
-                      };
-                      
-                     
-                      
-                      const premiumStepStyle: React.CSSProperties = {
-                        color: "#64748B",
-                        fontSize: 14,
-                        fontWeight: 700
-                      };
-                      
-                      const premiumImageWrapperStyle: React.CSSProperties = {
-                        flex: 1,
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center"
-                      };
-                      
-                      const premiumImageCircleStyle: React.CSSProperties = {
-                        width: 250,
-                        height: 250,
-                        borderRadius: "50%",
-                        background:
-                          "radial-gradient(circle, rgba(59,130,246,0.24), rgba(15,23,42,0.4) 55%, transparent 70%)",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        boxShadow: "0 0 55px rgba(37,99,235,0.22)"
-                      };
-                      
-                      const premiumEmojiStyle: React.CSSProperties = {
-                        fontSize: 126,
-                        filter: "drop-shadow(0 18px 22px rgba(0,0,0,0.35))"
-                      };
-                      
-                     
-                      
-                      const premiumDescriptionStyle: React.CSSProperties = {
-                        color: "#94A3B8",
-                        fontSize: 16,
-                        lineHeight: 1.55,
-                        marginTop: 18,
-                        marginBottom: 26
-                      };
                       
                      
 
@@ -1797,31 +1675,8 @@ const introChecklistStyle: React.CSSProperties = {
                         fontSize: 15
                       };
                       
-                      const premiumImageWrapStyle: React.CSSProperties = {
-                        flex: 1,
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        paddingTop: 20,
-                        paddingBottom: 20
-                      };
                       
-                      const premiumImageStyle: React.CSSProperties = {
-                        width: "100%",
-                        maxWidth: 320,
-                        objectFit: "contain"
-                      };
                       
-                      const premiumCardStyle: React.CSSProperties = {
-                        background: "#111827",
-                        borderRadius: 34,
-                        padding: 28,
-                        display: "flex",
-                        flexDirection: "column",
-                        alignItems: "center",
-                        textAlign: "center",
-                        gap: 18
-                      };
                       
                       const premiumDotsRowStyle: React.CSSProperties = {
                         display: "flex",
@@ -1838,31 +1693,9 @@ const introChecklistStyle: React.CSSProperties = {
                         borderRadius: 999
                       };
                       
-                      const premiumTitleStyle: React.CSSProperties = {
-                        fontSize: 34,
-                        lineHeight: 1.1,
-                        fontWeight: 900,
-                        margin: 0
-                      };
+                   
                       
-                      const premiumTextStyle: React.CSSProperties = {
-                        color: "#94A3B8",
-                        fontSize: 15,
-                        lineHeight: 1.6,
-                        margin: 0
-                      };
-                      
-                      const premiumButtonStyle: React.CSSProperties = {
-                        width: 72,
-                        height: 72,
-                        borderRadius: "50%",
-                        border: "none",
-                        background: "#2563EB",
-                        color: "white",
-                        fontSize: 34,
-                        fontWeight: "bold",
-                        marginTop: 6
-                      };
+        
 
                       const onboardingMockupCardStyle: React.CSSProperties = {
                         background: "#050B18",
