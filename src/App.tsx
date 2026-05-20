@@ -56,7 +56,7 @@ export default function App() {
 const [screen, setScreen] = useState<Screen>("splash");
 const [introStep, setIntroStep] = useState(0);
 const [hasSeenOnboarding, setHasSeenOnboarding] = useState(() => {
-        return localStorage.getItem("moveup_onboarding_seen") === "true";
+  return false;
       });
 const [selectedExercise, setSelectedExercise] = useState("Agachamento");
 const [cameraFacing, setCameraFacing] = useState<CameraFacing>("environment");
@@ -939,112 +939,118 @@ dot={{ r: 5 }}
 </AppLayout>
 );
 }
+
 if (screen === "onboarding") {
 
-        const onboardingScreens = [
-        {
-        title1: "Track Your",
-        title2: "Workout",
-        description:
-        "Monitor your exercises with AI precision and improve every movement.",
-        image: "🏋️"
-        },
-        {
-        title1: "Smart AI",
-        title2: "Analysis",
-        description:
-        "Receive instant feedback about depth, posture and execution quality.",
-        image: "🧠"
-        },
-        {
-        title1: "See Your",
-        title2: "Evolution",
-        description:
-        "Track your progress and become more consistent every workout.",
-        image: "📈"
+  const onboardingScreens = [
+    {
+      step: "1 / 3",
+      title1: "Grave seu",
+      title2: "treino",
+      description: "Envie seu agachamento em segundos.",
+      image: "/onboarding-1.png"
+    },
+    {
+      step: "2 / 3",
+      title1: "Receba análise",
+      title2: "por IA",
+      description: "Descubra pontos para melhorar sua execução.",
+      image: "/onboarding-2.png"
+    },
+    {
+      step: "3 / 3",
+      title1: "Acompanhe sua",
+      title2: "evolução",
+      description: "Veja sua melhora treino após treino.",
+      image: "/onboarding-3.png"
+    }
+  ];
+
+  const current = onboardingScreens[introStep];
+
+  return (
+    <div style={premiumPageStyle}>
+  <div style={premiumTopRowStyle}>
+    <div style={premiumBrandStyle}>
+      Move<span style={{ color: "#3B82F6" }}>Up</span>
+    </div>
+
+    <button onClick={() => setScreen("home")} style={premiumSkipStyle}>
+      Skip
+    </button>
+  </div>
+
+  <div style={onboardingMockupCardStyle}>
+    <div style={onboardingStepStyle}>{current.step}</div>
+
+    <h1 style={onboardingMockupTitleStyle}>
+      {current.title1}
+      <br />
+      <span style={{ color: "#3B82F6" }}>{current.title2}</span>
+    </h1>
+
+    <p style={onboardingMockupDescriptionStyle}>
+      {current.description}
+    </p>
+
+    <div
+  style={
+    introStep === 1
+      ? {
+          flex: 1,
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          marginTop: 18,
+          marginBottom: 8
         }
-        ];
-        
-        const current = onboardingScreens[introStep];
-        
-        return (
-        <div style={premiumOnboardingPageStyle}>
-        
-        <div style={premiumGlowStyle} />
-        
-        <div style={premiumCardStyle}>
-        
-        <div style={premiumTopBarStyle}>
-        <div style={premiumDotsWrapperStyle}>
-        {onboardingScreens.map((_, index) => (
+      : onboardingImageFrameStyle
+  }
+>
+<img
+  src={current.image}
+  alt="onboarding"
+  style={{
+    ...onboardingMockupImageStyle,
+    width: introStep === 1 ? 460 : introStep === 2 ? 360 : 300,
+    height: "auto",
+    objectFit: "contain"
+  }}
+/>
+</div>
+
+    <div style={premiumDotsRowStyle}>
+      {onboardingScreens.map((_, index) => (
         <div
-        key={index}
-        style={{
-        ...premiumDotStyle,
-        width: index === introStep ? 30 : 10,
-        background:
-        index === introStep
-        ? "#3B82F6"
-        : "#334155"
-        }}
+          key={index}
+          style={{
+            ...premiumDotStyle,
+            background: introStep === index ? "#3B82F6" : "#334155"
+          }}
         />
-        ))}
-        </div>
-        
-        <div style={premiumStepStyle}>
-        0{introStep + 1}
-        </div>
-        </div>
-        
-        <div style={premiumImageWrapperStyle}>
-        <div style={premiumImageCircleStyle}>
-        <div style={premiumEmojiStyle}>
-        {current.image}
-        </div>
-        </div>
-        </div>
-        
-        <h1 style={premiumTitleStyle}>
-        {current.title1}
-        <br />
-        <span style={{ color: "#3B82F6" }}>
-        {current.title2}
-        </span>
-        </h1>
-        
-        <p style={premiumDescriptionStyle}>
-        {current.description}
-        </p>
-        
-        <button
-        onClick={() => {
-        
+      ))}
+    </div>
+
+    <button
+      onClick={() => {
         if (introStep < onboardingScreens.length - 1) {
-        setIntroStep((prev) => prev + 1);
-        return;
+          setIntroStep((prev) => prev + 1);
+          return;
         }
-        
-        localStorage.setItem(
-        "moveup_onboarding_seen",
-        "true"
-        );
-        
+
+        localStorage.setItem("moveup_onboarding_seen", "true");
         setHasSeenOnboarding(true);
-        
         setScreen("home");
-        }}
-        style={premiumButtonStyle}
-        >
-        {introStep === onboardingScreens.length - 1
-        ? "Get Started"
-        : "Continue"}
-        </button>
-        
-        </div>
-        
-        </div>
-        );
-        }
+      }}
+      style={onboardingMockupButtonStyle}
+    >
+      {introStep === onboardingScreens.length - 1 ? "Começar" : "Próximo"}
+    </button>
+  </div>
+</div>
+  );
+}
+
 if (screen === "profile") {
 return (
 <AppLayout active="profile" setScreen={setScreen}>
@@ -1704,20 +1710,7 @@ const introChecklistStyle: React.CSSProperties = {
                         top: 80
                       };
                       
-                      const premiumCardStyle: React.CSSProperties = {
-                        width: "100%",
-                        maxWidth: 390,
-                        minHeight: 700,
-                        borderRadius: 36,
-                        background: "linear-gradient(180deg, #0F172A 0%, #020617 100%)",
-                        border: "1px solid rgba(96,165,250,0.22)",
-                        padding: 26,
-                        display: "flex",
-                        flexDirection: "column",
-                        position: "relative",
-                        zIndex: 2,
-                        boxShadow: "0 30px 80px rgba(0,0,0,0.45)"
-                      };
+                      
                       
                       const premiumTopBarStyle: React.CSSProperties = {
                         display: "flex",
@@ -1731,11 +1724,7 @@ const introChecklistStyle: React.CSSProperties = {
                         gap: 8
                       };
                       
-                      const premiumDotStyle: React.CSSProperties = {
-                        height: 10,
-                        borderRadius: 999,
-                        transition: "0.3s"
-                      };
+                     
                       
                       const premiumStepStyle: React.CSSProperties = {
                         color: "#64748B",
@@ -1767,13 +1756,7 @@ const introChecklistStyle: React.CSSProperties = {
                         filter: "drop-shadow(0 18px 22px rgba(0,0,0,0.35))"
                       };
                       
-                      const premiumTitleStyle: React.CSSProperties = {
-                        fontSize: 44,
-                        lineHeight: 1.03,
-                        margin: 0,
-                        fontWeight: 900,
-                        letterSpacing: -1
-                      };
+                     
                       
                       const premiumDescriptionStyle: React.CSSProperties = {
                         color: "#94A3B8",
@@ -1783,14 +1766,174 @@ const introChecklistStyle: React.CSSProperties = {
                         marginBottom: 26
                       };
                       
-                      const premiumButtonStyle: React.CSSProperties = {
-                        width: "100%",
-                        height: 60,
-                        borderRadius: 20,
-                        border: "none",
-                        background: "linear-gradient(90deg, #2563EB, #3B82F6)",
+                     
+
+                      const premiumPageStyle: React.CSSProperties = {
+                        minHeight: "100vh",
+                        background: "#0B0F19",
+                        display: "flex",
+                        flexDirection: "column",
+                        justifyContent: "space-between",
+                        padding: "32px 24px",
                         color: "white",
-                        fontSize: 18,
-                        fontWeight: 800,
-                        boxShadow: "0 16px 35px rgba(37,99,235,0.35)"
+                        overflow: "hidden"
+                      };
+                      
+                      const premiumTopRowStyle: React.CSSProperties = {
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center"
+                      };
+                      
+                      const premiumBrandStyle: React.CSSProperties = {
+                        fontSize: 26,
+                        fontWeight: 900
+                      };
+                      
+                      const premiumSkipStyle: React.CSSProperties = {
+                        background: "none",
+                        border: "none",
+                        color: "#94A3B8",
+                        fontSize: 15
+                      };
+                      
+                      const premiumImageWrapStyle: React.CSSProperties = {
+                        flex: 1,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        paddingTop: 20,
+                        paddingBottom: 20
+                      };
+                      
+                      const premiumImageStyle: React.CSSProperties = {
+                        width: "100%",
+                        maxWidth: 320,
+                        objectFit: "contain"
+                      };
+                      
+                      const premiumCardStyle: React.CSSProperties = {
+                        background: "#111827",
+                        borderRadius: 34,
+                        padding: 28,
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                        textAlign: "center",
+                        gap: 18
+                      };
+                      
+                      const premiumDotsRowStyle: React.CSSProperties = {
+                        display: "flex",
+                        justifyContent: "center",
+                        alignItems: "center",
+                        gap: 8,
+                        marginTop: 10,
+                        marginBottom: 22
+                      };
+                      
+                      const premiumDotStyle: React.CSSProperties = {
+                        width: 10,
+                        height: 10,
+                        borderRadius: 999
+                      };
+                      
+                      const premiumTitleStyle: React.CSSProperties = {
+                        fontSize: 34,
+                        lineHeight: 1.1,
+                        fontWeight: 900,
+                        margin: 0
+                      };
+                      
+                      const premiumTextStyle: React.CSSProperties = {
+                        color: "#94A3B8",
+                        fontSize: 15,
+                        lineHeight: 1.6,
+                        margin: 0
+                      };
+                      
+                      const premiumButtonStyle: React.CSSProperties = {
+                        width: 72,
+                        height: 72,
+                        borderRadius: "50%",
+                        border: "none",
+                        background: "#2563EB",
+                        color: "white",
+                        fontSize: 34,
+                        fontWeight: "bold",
+                        marginTop: 6
+                      };
+
+                      const onboardingMockupCardStyle: React.CSSProperties = {
+                        background: "#050B18",
+                        border: "1px solid rgba(255,255,255,0.12)",
+                        borderRadius: 34,
+                        padding: "28px 24px 24px",
+                        marginTop: 24,
+                        minHeight: 720,
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "stretch",
+                        position: "relative",
+                        overflow: "hidden",
+                        boxShadow: "0 0 40px rgba(37,99,235,0.12)"
+                      };
+                      
+                      const onboardingStepStyle: React.CSSProperties = {
+                        color: "#FFFFFF",
+                        opacity: 0.75,
+                        fontSize: 15,
+                        fontWeight: 700
+                      };
+                      
+                      const onboardingMockupTitleStyle: React.CSSProperties = {
+                        fontSize: 46,
+                        lineHeight: 1.05,
+                        marginTop: 28,
+                        marginBottom: 0,
+                        fontWeight: 900,
+                        letterSpacing: -1,
+                        color: "white",
+                        textAlign: "left"
+                      };
+                      
+                      const onboardingMockupDescriptionStyle: React.CSSProperties = {
+                        color: "#A1A1AA",
+                        fontSize: 22,
+                        lineHeight: 1.45,
+                        marginTop: 26,
+                        marginBottom: 0,
+                        maxWidth: 290,
+                        textAlign: "left"
+                      };
+                      
+                      const onboardingImageFrameStyle: React.CSSProperties = {
+                        flex: 1,
+                        display: "flex",
+                        justifyContent: "center",
+                        alignItems: "center",
+                        marginTop: 18,
+                        marginBottom: 8,
+                        border: "2px solid rgba(37,99,235,0.75)",
+                        borderRadius: 24,
+                        padding: 12,
+                        boxShadow: "0 0 22px rgba(37,99,235,0.22)"
+                      };
+                      
+                      const onboardingMockupImageStyle: React.CSSProperties = {
+                        width: 300,
+                        objectFit: "contain",
+                        filter: "drop-shadow(0 0 20px rgba(37,99,235,0.25))"
+                      };
+                      
+                      const onboardingMockupButtonStyle: React.CSSProperties = {
+                        width: "100%",
+                        height: 68,
+                        borderRadius: 22,
+                        border: "none",
+                        background: "#2563EB",
+                        color: "white",
+                        fontSize: 22,
+                        fontWeight: 700,
+                        marginTop: 10
                       };
