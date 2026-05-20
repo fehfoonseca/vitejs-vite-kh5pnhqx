@@ -1273,7 +1273,7 @@ function IntroItem({ icon, title, text }: any) {
               <div style={introItemStyle}>
                     <div style={introIconStyle}>{icon}</div>
 
-                          <div>
+                    <div style={{ flex: 1 }}>
                                   <div style={{ fontWeight: "bold" }}>{title}</div>
                                           <div style={{ color: "#A1A1AA", fontSize: 13, marginTop: 4 }}>
                                                     {text}
@@ -1525,21 +1525,22 @@ const introChecklistStyle: React.CSSProperties = {
 
                 const introItemStyle: React.CSSProperties = {
                   display: "flex",
-                    gap: 12,
-                      alignItems: "flex-start",
-                        background: "#0F172A",
-                          border: "1px solid #1E293B",
-                            borderRadius: 16,
-                              padding: 14
-                              };
+                  gap: 14,
+                  alignItems: "center",
+                  background: "#0F172A",
+                  border: "1px solid #1E293B",
+                  borderRadius: 16,
+                  padding: 16
+                };
 
-                              const introIconStyle: React.CSSProperties = {
-                                width: 38,
-                                  height: 38,
-                                    borderRadius: 12,
-                                      background: "rgba(37,99,235,0.16)",
-                                        display: "flex",
-                                          alignItems: "center",
-                                            justifyContent: "center",
-                                              flexShrink: 0
-                                              };
+                const introIconStyle: React.CSSProperties = {
+                  width: 42,
+                  height: 42,
+                  borderRadius: 14,
+                  background: "rgba(37,99,235,0.16)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  flexShrink: 0,
+                  fontSize: 18
+                };
