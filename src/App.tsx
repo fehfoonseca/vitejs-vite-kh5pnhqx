@@ -107,14 +107,23 @@ const worstTorsoRef = useRef(0);
 const worstHipRef = useRef(0);
 
 useEffect(() => {
-if (screen !== "splash") return;
+  if (screen !== "splash") return;
 
-const timer = setTimeout(() => {
-        setScreen(hasSeenOnboarding ? "home" : "onboarding");
-}, 2800);
+  const timer = setTimeout(() => {
+    setScreen(hasSeenOnboarding ? "home" : "onboarding");
+  }, 2800);
 
-return () => clearTimeout(timer);
+  return () => clearTimeout(timer);
 }, [screen]);
+
+useEffect(() => {
+  ["/onboarding-1.png", "/onboarding-2.png", "/onboarding-3.png"].forEach(
+    (src) => {
+      const img = new Image();
+      img.src = src;
+    }
+  );
+}, []);
 
 useEffect(() => {
 sessionFinishedRef.current = sessionFinished;
@@ -1008,20 +1017,21 @@ if (screen === "onboarding") {
   }
 >
 <img
+  key={current.image}
   src={current.image}
   alt="onboarding"
   style={{
     ...onboardingMockupImageStyle,
     width:
       introStep === 1
-        ? "115%"
+        ? "135%"
         : introStep === 2
-        ? "125%"
-        : "95%",
+        ? "145%"
+        : "110%",
     maxHeight:
       introStep === 0
-        ? 300
-        : 330,
+        ? 330
+        : 360,
     height: "auto",
     objectFit: "contain"
   }}
