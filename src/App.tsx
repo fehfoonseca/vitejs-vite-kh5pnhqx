@@ -14,12 +14,13 @@ ResponsiveContainer
 
 type Screen =
   | "splash"
-    | "home"
-      | "squatIntro"
-        | "squat"
-          | "history"
-            | "progress"
-              | "profile";
+  | "onboarding"
+  | "home"
+  | "squatIntro"
+  | "squat"
+  | "history"
+  | "progress"
+  | "profile";
 type CameraFacing = "user" | "environment";
 
 type Stage =
@@ -53,6 +54,10 @@ date: string;
 
 export default function App() {
 const [screen, setScreen] = useState<Screen>("splash");
+const [introStep, setIntroStep] = useState(0);
+const [hasSeenOnboarding, setHasSeenOnboarding] = useState(() => {
+        return localStorage.getItem("moveup_onboarding_seen") === "true";
+      });
 const [selectedExercise, setSelectedExercise] = useState("Agachamento");
 const [cameraFacing, setCameraFacing] = useState<CameraFacing>("environment");
 
@@ -105,7 +110,7 @@ useEffect(() => {
 if (screen !== "splash") return;
 
 const timer = setTimeout(() => {
-setScreen("home");
+        setScreen(hasSeenOnboarding ? "home" : "onboarding");
 }, 2800);
 
 return () => clearTimeout(timer);
@@ -934,66 +939,112 @@ dot={{ r: 5 }}
 </AppLayout>
 );
 }
-if (screen === "squatIntro") {
-      return (
-          <AppLayout active="home" setScreen={setScreen}>
-                <h1 style={{ marginBottom: 8 }}>
-                        📱 Como se posicionar
-                              </h1>
+if (screen === "onboarding") {
 
-                                    <p
-                                            style={{
-                                                      color: "#A1A1AA",
-                                                                lineHeight: 1.5
-                                                                        }}
-                                                                              >
-                                                                                      Para a IA analisar melhor seu agachamento,
-                                                                                              prepare o ambiente antes de abrir a câmera.
-                                                                                                    </p>
-
-                                                                                                          <div style={introChecklistStyle}>
-                                                                                                                  <IntroItem
-                                                                                                                            icon="↔️"
-                                                                                                                                      title="Fique de lado"
-                                                                                                                                                text="A análise lateral mede profundidade, tronco e quadril."
-                                                                                                                                                        />
-
-                                                                                                                                                                <IntroItem
-                                                                                                                                                                          icon="📏"
-                                                                                                                                                                                    title="Corpo inteiro no quadro"
-                                                                                                                                                                                              text="Deixe aparecer ombro, quadril, joelho e tornozelo."
-                                                                                                                                                                                                      />
-
-                                                                                                                                                                                                              <IntroItem
-                                                                                                                                                                                                                        icon="📷"
-                                                                                                                                                                                                                                  title="Use a câmera traseira"
-                                                                                                                                                                                                                                            text="Ela costuma ter melhor qualidade."
-                                                                                                                                                                                                                                                    />
-
-                                                                                                                                                                                                                                                            <IntroItem
-                                                                                                                                                                                                                                                                      icon="💡"
-                                                                                                                                                                                                                                                                                title="Boa iluminação"
-                                                                                                                                                                                                                                                                                          text="Evite ambiente escuro."
-                                                                                                                                                                                                                                                                                                  />
-                                                                                                                                                                                                                                                                                                        </div>
-
-                                                                                                                                                                                                                                                                                                              <button
-                                                                                                                                                                                                                                                                                                                      onClick={() => {
-                                                                                                                                                                                                                                                                                                                                setScreen("squat");
-                                                                                                                                                                                                                                                                                                                                          setFeedback(
-                                                                                                                                                                                                                                                                                                                                                      "Fique totalmente de lado, em pé e parado para calibrar."
-                                                                                                                                                                                                                                                                                                                                                                );
-                                                                                                                                                                                                                                                                                                                                                                          resetMotionRefs();
-                                                                                                                                                                                                                                                                                                                                                                                    resetCalibration();
-                                                                                                                                                                                                                                                                                                                                                                                            }}
-                                                                                                                                                                                                                                                                                                                                                                                                    style={primaryButtonStyle}
-                                                                                                                                                                                                                                                                                                                                                                                                          >
-                                                                                                                                                                                                                                                                                                                                                                                                                  Abrir câmera
-                                                                                                                                                                                                                                                                                                                                                                                                                        </button>
-                                                                                                                                                                                                                                                                                                                                                                                                                            </AppLayout>
-                                                                                                                                                                                                                                                                                                                                                                                                                              );
-                                                                                                                                                                                                                                                                                                                                                                                                                              }
-
+        const onboardingScreens = [
+        {
+        title1: "Track Your",
+        title2: "Workout",
+        description:
+        "Monitor your exercises with AI precision and improve every movement.",
+        image: "🏋️"
+        },
+        {
+        title1: "Smart AI",
+        title2: "Analysis",
+        description:
+        "Receive instant feedback about depth, posture and execution quality.",
+        image: "🧠"
+        },
+        {
+        title1: "See Your",
+        title2: "Evolution",
+        description:
+        "Track your progress and become more consistent every workout.",
+        image: "📈"
+        }
+        ];
+        
+        const current = onboardingScreens[introStep];
+        
+        return (
+        <div style={premiumOnboardingPageStyle}>
+        
+        <div style={premiumGlowStyle} />
+        
+        <div style={premiumCardStyle}>
+        
+        <div style={premiumTopBarStyle}>
+        <div style={premiumDotsWrapperStyle}>
+        {onboardingScreens.map((_, index) => (
+        <div
+        key={index}
+        style={{
+        ...premiumDotStyle,
+        width: index === introStep ? 30 : 10,
+        background:
+        index === introStep
+        ? "#3B82F6"
+        : "#334155"
+        }}
+        />
+        ))}
+        </div>
+        
+        <div style={premiumStepStyle}>
+        0{introStep + 1}
+        </div>
+        </div>
+        
+        <div style={premiumImageWrapperStyle}>
+        <div style={premiumImageCircleStyle}>
+        <div style={premiumEmojiStyle}>
+        {current.image}
+        </div>
+        </div>
+        </div>
+        
+        <h1 style={premiumTitleStyle}>
+        {current.title1}
+        <br />
+        <span style={{ color: "#3B82F6" }}>
+        {current.title2}
+        </span>
+        </h1>
+        
+        <p style={premiumDescriptionStyle}>
+        {current.description}
+        </p>
+        
+        <button
+        onClick={() => {
+        
+        if (introStep < onboardingScreens.length - 1) {
+        setIntroStep((prev) => prev + 1);
+        return;
+        }
+        
+        localStorage.setItem(
+        "moveup_onboarding_seen",
+        "true"
+        );
+        
+        setHasSeenOnboarding(true);
+        
+        setScreen("home");
+        }}
+        style={premiumButtonStyle}
+        >
+        {introStep === onboardingScreens.length - 1
+        ? "Get Started"
+        : "Continue"}
+        </button>
+        
+        </div>
+        
+        </div>
+        );
+        }
 if (screen === "profile") {
 return (
 <AppLayout active="profile" setScreen={setScreen}>
@@ -1553,3 +1604,193 @@ const introChecklistStyle: React.CSSProperties = {
                   flexShrink: 0,
                   fontSize: 18
                 };
+
+                const onboardingPageStyle: React.CSSProperties = {
+                        minHeight: "100vh",
+                        background:
+                          "radial-gradient(circle at top, rgba(37,99,235,0.18), transparent 40%), #020617",
+                        display: "flex",
+                        justifyContent: "center",
+                        alignItems: "center",
+                        padding: 24,
+                        color: "white",
+                        fontFamily: "Arial"
+                      };
+                      
+                      const onboardingCardStyle: React.CSSProperties = {
+                        width: "100%",
+                        maxWidth: 390,
+                        background: "#050B16",
+                        border: "1px solid #1E293B",
+                        borderRadius: 32,
+                        padding: 28,
+                        display: "flex",
+                        flexDirection: "column",
+                        minHeight: 720,
+                        position: "relative",
+                        overflow: "hidden"
+                      };
+                      
+                      const onboardingCountStyle: React.CSSProperties = {
+                        color: "#94A3B8",
+                        fontSize: 13,
+                        marginBottom: 24
+                      };
+                      
+                      const onboardingTitleStyle: React.CSSProperties = {
+                        fontSize: 42,
+                        lineHeight: 1.05,
+                        margin: 0,
+                        fontWeight: 800
+                      };
+                      
+                      const onboardingDescriptionStyle: React.CSSProperties = {
+                        color: "#94A3B8",
+                        fontSize: 17,
+                        lineHeight: 1.5,
+                        marginTop: 18
+                      };
+                      
+                      const onboardingImageStyle: React.CSSProperties = {
+                        flex: 1,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        fontSize: 140
+                      };
+                      
+                      const onboardingDotsStyle: React.CSSProperties = {
+                        display: "flex",
+                        justifyContent: "center",
+                        gap: 10,
+                        marginBottom: 28
+                      };
+                      
+                      const onboardingDotStyle: React.CSSProperties = {
+                        height: 10,
+                        borderRadius: 999,
+                        transition: "0.3s"
+                      };
+                      
+                      const onboardingButtonStyle: React.CSSProperties = {
+                        width: "100%",
+                        height: 58,
+                        borderRadius: 18,
+                        border: "none",
+                        background: "#2563EB",
+                        color: "white",
+                        fontSize: 18,
+                        fontWeight: 700
+                      };
+                      const premiumOnboardingPageStyle: React.CSSProperties = {
+                        minHeight: "100vh",
+                        background:
+                          "radial-gradient(circle at top, rgba(37,99,235,0.28), transparent 35%), #020617",
+                        display: "flex",
+                        justifyContent: "center",
+                        alignItems: "center",
+                        padding: 22,
+                        color: "white",
+                        fontFamily: "Arial"
+                      };
+                      
+                      const premiumGlowStyle: React.CSSProperties = {
+                        position: "absolute",
+                        width: 260,
+                        height: 260,
+                        borderRadius: "50%",
+                        background: "rgba(37,99,235,0.18)",
+                        filter: "blur(70px)",
+                        top: 80
+                      };
+                      
+                      const premiumCardStyle: React.CSSProperties = {
+                        width: "100%",
+                        maxWidth: 390,
+                        minHeight: 700,
+                        borderRadius: 36,
+                        background: "linear-gradient(180deg, #0F172A 0%, #020617 100%)",
+                        border: "1px solid rgba(96,165,250,0.22)",
+                        padding: 26,
+                        display: "flex",
+                        flexDirection: "column",
+                        position: "relative",
+                        zIndex: 2,
+                        boxShadow: "0 30px 80px rgba(0,0,0,0.45)"
+                      };
+                      
+                      const premiumTopBarStyle: React.CSSProperties = {
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        marginBottom: 26
+                      };
+                      
+                      const premiumDotsWrapperStyle: React.CSSProperties = {
+                        display: "flex",
+                        gap: 8
+                      };
+                      
+                      const premiumDotStyle: React.CSSProperties = {
+                        height: 10,
+                        borderRadius: 999,
+                        transition: "0.3s"
+                      };
+                      
+                      const premiumStepStyle: React.CSSProperties = {
+                        color: "#64748B",
+                        fontSize: 14,
+                        fontWeight: 700
+                      };
+                      
+                      const premiumImageWrapperStyle: React.CSSProperties = {
+                        flex: 1,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center"
+                      };
+                      
+                      const premiumImageCircleStyle: React.CSSProperties = {
+                        width: 250,
+                        height: 250,
+                        borderRadius: "50%",
+                        background:
+                          "radial-gradient(circle, rgba(59,130,246,0.24), rgba(15,23,42,0.4) 55%, transparent 70%)",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        boxShadow: "0 0 55px rgba(37,99,235,0.22)"
+                      };
+                      
+                      const premiumEmojiStyle: React.CSSProperties = {
+                        fontSize: 126,
+                        filter: "drop-shadow(0 18px 22px rgba(0,0,0,0.35))"
+                      };
+                      
+                      const premiumTitleStyle: React.CSSProperties = {
+                        fontSize: 44,
+                        lineHeight: 1.03,
+                        margin: 0,
+                        fontWeight: 900,
+                        letterSpacing: -1
+                      };
+                      
+                      const premiumDescriptionStyle: React.CSSProperties = {
+                        color: "#94A3B8",
+                        fontSize: 16,
+                        lineHeight: 1.55,
+                        marginTop: 18,
+                        marginBottom: 26
+                      };
+                      
+                      const premiumButtonStyle: React.CSSProperties = {
+                        width: "100%",
+                        height: 60,
+                        borderRadius: 20,
+                        border: "none",
+                        background: "linear-gradient(90deg, #2563EB, #3B82F6)",
+                        color: "white",
+                        fontSize: 18,
+                        fontWeight: 800,
+                        boxShadow: "0 16px 35px rgba(37,99,235,0.35)"
+                      };
