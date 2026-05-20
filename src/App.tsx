@@ -740,13 +740,14 @@ return (
 
 <div style={splashLogoCircleStyle}>
   <img
-    src="/icon.png"
+src="/logo-symbol.png"
     alt="MoveUp"
     style={{
-      width: 120,
-      height: 120,
+      width: 400,
+      height: 400,
       borderRadius: 28,
-      objectFit: "cover"
+      transform: "translateY(12px) translateX(-4px)",
+      objectFit: "contain"
     }}
   />
 </div>
