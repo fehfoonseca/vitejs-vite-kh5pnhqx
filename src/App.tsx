@@ -995,7 +995,7 @@ if (screen === "onboarding") {
 
     <div
   style={
-    introStep === 1
+    introStep === 1 || introStep === 2
       ? {
           flex: 1,
           display: "flex",
@@ -1012,7 +1012,7 @@ if (screen === "onboarding") {
   alt="onboarding"
   style={{
     ...onboardingMockupImageStyle,
-    width: introStep === 1 ? 460 : introStep === 2 ? 360 : 300,
+    width: introStep === 1 ? 460 : introStep === 2 ? 520 : 300,
     height: "auto",
     objectFit: "contain"
   }}
