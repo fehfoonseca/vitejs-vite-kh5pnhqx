@@ -739,8 +739,16 @@ return (
 <div style={splashGlowStyle} />
 
 <div style={splashLogoCircleStyle}>
-<div style={splashArrowStyle}>↗</div>
-<div style={splashPersonStyle}>🏋️</div>
+  <img
+    src="/icon.png"
+    alt="MoveUp"
+    style={{
+      width: 120,
+      height: 120,
+      borderRadius: 28,
+      objectFit: "cover"
+    }}
+  />
 </div>
 
 <h1 style={splashTitleStyle}>
