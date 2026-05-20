@@ -1559,38 +1559,7 @@ padding: 16,
 marginTop: 18
 }; 
 
-
-
-                const introItemStyle: React.CSSProperties = {
-                  display: "flex",
-                  gap: 14,
-                  alignItems: "center",
-                  background: "#0F172A",
-                  border: "1px solid #1E293B",
-                  borderRadius: 16,
-                  padding: 16
-                };
-
-                const introIconStyle: React.CSSProperties = {
-                  width: 42,
-                  height: 42,
-                  borderRadius: 14,
-                  background: "rgba(37,99,235,0.16)",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  flexShrink: 0,
-                  fontSize: 18
-                };
-
-
-                      
-
-                      
-
-                      
-                      
-                     
+              
 
                       const premiumPageStyle: React.CSSProperties = {
                         minHeight: "100vh",
