@@ -1012,7 +1012,16 @@ if (screen === "onboarding") {
   alt="onboarding"
   style={{
     ...onboardingMockupImageStyle,
-    width: introStep === 1 ? 460 : introStep === 2 ? 520 : 300,
+    width:
+      introStep === 1
+        ? "115%"
+        : introStep === 2
+        ? "125%"
+        : "95%",
+    maxHeight:
+      introStep === 0
+        ? 300
+        : 330,
     height: "auto",
     objectFit: "contain"
   }}
@@ -1561,16 +1570,16 @@ marginTop: 18
 
               
 
-                      const premiumPageStyle: React.CSSProperties = {
-                        minHeight: "100vh",
-                        background: "#0B0F19",
-                        display: "flex",
-                        flexDirection: "column",
-                        justifyContent: "space-between",
-                        padding: "32px 24px",
-                        color: "white",
-                        overflow: "hidden"
-                      };
+const premiumPageStyle: React.CSSProperties = {
+  minHeight: "100dvh",
+  background: "#0B0F19",
+  display: "flex",
+  flexDirection: "column",
+  padding: "18px 16px",
+  color: "white",
+  overflow: "hidden",
+  boxSizing: "border-box"
+};
                       
                       const premiumTopRowStyle: React.CSSProperties = {
                         display: "flex",
@@ -1615,16 +1624,16 @@ marginTop: 18
                       const onboardingMockupCardStyle: React.CSSProperties = {
                         background: "#050B18",
                         border: "1px solid rgba(255,255,255,0.12)",
-                        borderRadius: 34,
-                        padding: "28px 24px 24px",
-                        marginTop: 24,
-                        minHeight: 720,
+                        borderRadius: 28,
+                        padding: "20px 18px",
+                        marginTop: 14,
+                        height: "calc(100dvh - 90px)",
                         display: "flex",
                         flexDirection: "column",
                         alignItems: "stretch",
-                        position: "relative",
                         overflow: "hidden",
-                        boxShadow: "0 0 40px rgba(37,99,235,0.12)"
+                        boxSizing: "border-box",
+                        boxShadow: "0 0 32px rgba(37,99,235,0.12)"
                       };
                       
                       const onboardingStepStyle: React.CSSProperties = {
@@ -1635,9 +1644,9 @@ marginTop: 18
                       };
                       
                       const onboardingMockupTitleStyle: React.CSSProperties = {
-                        fontSize: 46,
+                        fontSize: 34,
                         lineHeight: 1.05,
-                        marginTop: 28,
+                        marginTop: 18,
                         marginBottom: 0,
                         fontWeight: 900,
                         letterSpacing: -1,
@@ -1647,25 +1656,27 @@ marginTop: 18
                       
                       const onboardingMockupDescriptionStyle: React.CSSProperties = {
                         color: "#A1A1AA",
-                        fontSize: 22,
+                        fontSize: 16,
                         lineHeight: 1.45,
-                        marginTop: 26,
+                        marginTop: 14,
                         marginBottom: 0,
-                        maxWidth: 290,
+                        maxWidth: 280,
                         textAlign: "left"
                       };
                       
                       const onboardingImageFrameStyle: React.CSSProperties = {
                         flex: 1,
+                        minHeight: 0,
                         display: "flex",
                         justifyContent: "center",
                         alignItems: "center",
-                        marginTop: 18,
+                        marginTop: 12,
                         marginBottom: 8,
                         border: "2px solid rgba(37,99,235,0.75)",
-                        borderRadius: 24,
-                        padding: 12,
-                        boxShadow: "0 0 22px rgba(37,99,235,0.22)"
+                        borderRadius: 22,
+                        padding: 8,
+                        boxShadow: "0 0 22px rgba(37,99,235,0.22)",
+                        overflow: "hidden"
                       };
                       
                       const onboardingMockupImageStyle: React.CSSProperties = {
@@ -1676,12 +1687,13 @@ marginTop: 18
                       
                       const onboardingMockupButtonStyle: React.CSSProperties = {
                         width: "100%",
-                        height: 68,
-                        borderRadius: 22,
+                        height: 56,
+                        borderRadius: 18,
                         border: "none",
                         background: "#2563EB",
                         color: "white",
-                        fontSize: 22,
+                        fontSize: 18,
                         fontWeight: 700,
-                        marginTop: 10
+                        marginTop: 6,
+                        flexShrink: 0
                       };
