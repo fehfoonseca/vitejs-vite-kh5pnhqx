@@ -1334,20 +1334,7 @@ return (
 </div>
 );
 }
-function IntroItem({ icon, title, text }: any) {
-          return (
-              <div style={introItemStyle}>
-                    <div style={introIconStyle}>{icon}</div>
 
-                    <div style={{ flex: 1 }}>
-                                  <div style={{ fontWeight: "bold" }}>{title}</div>
-                                          <div style={{ color: "#A1A1AA", fontSize: 13, marginTop: 4 }}>
-                                                    {text}
-                                                            </div>
-                                                                  </div>
-                                                                      </div>
-                                                                        );
-                                                                        }
 }
 
 const pageStyle: React.CSSProperties = {
@@ -1431,19 +1418,9 @@ boxShadow: "0 0 40px rgba(37,99,235,0.35)",
 marginBottom: 26
 };
 
-const splashArrowStyle: React.CSSProperties = {
-position: "absolute",
-fontSize: 74,
-color: "#3B82F6",
-transform: "rotate(10deg)",
-opacity: 0.9
-};
 
-const splashPersonStyle: React.CSSProperties = {
-fontSize: 58,
-zIndex: 2,
-filter: "drop-shadow(0 0 10px rgba(96,165,250,0.7))"
-};
+
+
 
 const splashTitleStyle: React.CSSProperties = {
 fontSize: 44,
@@ -1582,12 +1559,7 @@ padding: 16,
 marginTop: 18
 }; 
 
-const introChecklistStyle: React.CSSProperties = {
-          display: "flex",
-            flexDirection: "column",
-              gap: 12,
-                marginTop: 22
-                };
+
 
                 const introItemStyle: React.CSSProperties = {
                   display: "flex",
@@ -1611,37 +1583,11 @@ const introChecklistStyle: React.CSSProperties = {
                   fontSize: 18
                 };
 
-                const onboardingPageStyle: React.CSSProperties = {
-                        minHeight: "100vh",
-                        background:
-                          "radial-gradient(circle at top, rgba(37,99,235,0.18), transparent 40%), #020617",
-                        display: "flex",
-                        justifyContent: "center",
-                        alignItems: "center",
-                        padding: 24,
-                        color: "white",
-                        fontFamily: "Arial"
-                      };
+
                       
-                      const onboardingCardStyle: React.CSSProperties = {
-                        width: "100%",
-                        maxWidth: 390,
-                        background: "#050B16",
-                        border: "1px solid #1E293B",
-                        borderRadius: 32,
-                        padding: 28,
-                        display: "flex",
-                        flexDirection: "column",
-                        minHeight: 720,
-                        position: "relative",
-                        overflow: "hidden"
-                      };
+
                       
-                      const onboardingCountStyle: React.CSSProperties = {
-                        color: "#94A3B8",
-                        fontSize: 13,
-                        marginBottom: 24
-                      };
+
                       
                       
                      
