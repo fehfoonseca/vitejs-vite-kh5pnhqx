@@ -12,7 +12,14 @@ Tooltip,
 ResponsiveContainer
 } from "recharts";
 
-type Screen = "splash" | "home" | "squat" | "history" | "progress" | "profile";
+type Screen =
+  | "splash"
+    | "home"
+      | "squatIntro"
+        | "squat"
+          | "history"
+            | "progress"
+              | "profile";
 type CameraFacing = "user" | "environment";
 
 type Stage =
@@ -683,7 +690,7 @@ alert("Esse exercício ainda está em desenvolvimento 🚧");
 return;
 }
 
-setScreen("squat");
+setScreen("squatIntro");
 setReps(0);
 setRepHistory([]);
 setSessionFinished(false);
@@ -918,6 +925,65 @@ dot={{ r: 5 }}
 </AppLayout>
 );
 }
+if (screen === "squatIntro") {
+      return (
+          <AppLayout active="home" setScreen={setScreen}>
+                <h1 style={{ marginBottom: 8 }}>
+                        📱 Como se posicionar
+                              </h1>
+
+                                    <p
+                                            style={{
+                                                      color: "#A1A1AA",
+                                                                lineHeight: 1.5
+                                                                        }}
+                                                                              >
+                                                                                      Para a IA analisar melhor seu agachamento,
+                                                                                              prepare o ambiente antes de abrir a câmera.
+                                                                                                    </p>
+
+                                                                                                          <div style={introChecklistStyle}>
+                                                                                                                  <IntroItem
+                                                                                                                            icon="↔️"
+                                                                                                                                      title="Fique de lado"
+                                                                                                                                                text="A análise lateral mede profundidade, tronco e quadril."
+                                                                                                                                                        />
+
+                                                                                                                                                                <IntroItem
+                                                                                                                                                                          icon="📏"
+                                                                                                                                                                                    title="Corpo inteiro no quadro"
+                                                                                                                                                                                              text="Deixe aparecer ombro, quadril, joelho e tornozelo."
+                                                                                                                                                                                                      />
+
+                                                                                                                                                                                                              <IntroItem
+                                                                                                                                                                                                                        icon="📷"
+                                                                                                                                                                                                                                  title="Use a câmera traseira"
+                                                                                                                                                                                                                                            text="Ela costuma ter melhor qualidade."
+                                                                                                                                                                                                                                                    />
+
+                                                                                                                                                                                                                                                            <IntroItem
+                                                                                                                                                                                                                                                                      icon="💡"
+                                                                                                                                                                                                                                                                                title="Boa iluminação"
+                                                                                                                                                                                                                                                                                          text="Evite ambiente escuro."
+                                                                                                                                                                                                                                                                                                  />
+                                                                                                                                                                                                                                                                                                        </div>
+
+                                                                                                                                                                                                                                                                                                              <button
+                                                                                                                                                                                                                                                                                                                      onClick={() => {
+                                                                                                                                                                                                                                                                                                                                setScreen("squat");
+                                                                                                                                                                                                                                                                                                                                          setFeedback(
+                                                                                                                                                                                                                                                                                                                                                      "Fique totalmente de lado, em pé e parado para calibrar."
+                                                                                                                                                                                                                                                                                                                                                                );
+                                                                                                                                                                                                                                                                                                                                                                          resetMotionRefs();
+                                                                                                                                                                                                                                                                                                                                                                                    resetCalibration();
+                                                                                                                                                                                                                                                                                                                                                                                            }}
+                                                                                                                                                                                                                                                                                                                                                                                                    style={primaryButtonStyle}
+                                                                                                                                                                                                                                                                                                                                                                                                          >
+                                                                                                                                                                                                                                                                                                                                                                                                                  Abrir câmera
+                                                                                                                                                                                                                                                                                                                                                                                                                        </button>
+                                                                                                                                                                                                                                                                                                                                                                                                                            </AppLayout>
+                                                                                                                                                                                                                                                                                                                                                                                                                              );
+                                                                                                                                                                                                                                                                                                                                                                                                                              }
 
 if (screen === "profile") {
 return (
@@ -1101,7 +1167,7 @@ Nova Série
 </div>
 </div>
 );
-}
+
 
 function AppLayout({
 children,
@@ -1201,6 +1267,21 @@ return (
 </div>
 </div>
 );
+}
+function IntroItem({ icon, title, text }: any) {
+          return (
+              <div style={introItemStyle}>
+                    <div style={introIconStyle}>{icon}</div>
+
+                          <div>
+                                  <div style={{ fontWeight: "bold" }}>{title}</div>
+                                          <div style={{ color: "#A1A1AA", fontSize: 13, marginTop: 4 }}>
+                                                    {text}
+                                                            </div>
+                                                                  </div>
+                                                                      </div>
+                                                                        );
+                                                                        }
 }
 
 const pageStyle: React.CSSProperties = {
@@ -1434,3 +1515,31 @@ borderRadius: 18,
 padding: 16,
 marginTop: 18
 }; 
+
+const introChecklistStyle: React.CSSProperties = {
+          display: "flex",
+            flexDirection: "column",
+              gap: 12,
+                marginTop: 22
+                };
+
+                const introItemStyle: React.CSSProperties = {
+                  display: "flex",
+                    gap: 12,
+                      alignItems: "flex-start",
+                        background: "#0F172A",
+                          border: "1px solid #1E293B",
+                            borderRadius: 16,
+                              padding: 14
+                              };
+
+                              const introIconStyle: React.CSSProperties = {
+                                width: 38,
+                                  height: 38,
+                                    borderRadius: 12,
+                                      background: "rgba(37,99,235,0.16)",
+                                        display: "flex",
+                                          alignItems: "center",
+                                            justifyContent: "center",
+                                              flexShrink: 0
+                                              };
