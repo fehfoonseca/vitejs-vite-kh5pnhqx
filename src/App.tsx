@@ -1024,10 +1024,10 @@ if (screen === "onboarding") {
     ...onboardingMockupImageStyle,
     width:
       introStep === 1
-        ? "170%"
+        ? "20%"
         : introStep === 2
-        ? "160%"
-        : "120%",
+        ? "50%"
+        : "80%",
         maxHeight: "none",
 
     height: "auto",
