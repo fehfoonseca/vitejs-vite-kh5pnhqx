@@ -55,6 +55,8 @@ date: string;
 export default function App() {
 const [screen, setScreen] = useState<Screen>("splash");
 const [introStep, setIntroStep] = useState(0);
+const [loadingProgress, setLoadingProgress] = useState(0);
+const [showEnterButton, setShowEnterButton] = useState(false);
 const [hasSeenOnboarding, setHasSeenOnboarding] = useState(() => {
   return false;
       });
@@ -109,11 +111,22 @@ const worstHipRef = useRef(0);
 useEffect(() => {
   if (screen !== "splash") return;
 
-  const timer = setTimeout(() => {
-    setScreen(hasSeenOnboarding ? "home" : "onboarding");
-  }, 2800);
+  setLoadingProgress(0);
+  setShowEnterButton(false);
 
-  return () => clearTimeout(timer);
+  const interval = setInterval(() => {
+    setLoadingProgress((prev) => {
+      if (prev >= 100) {
+        clearInterval(interval);
+        setShowEnterButton(true);
+        return 100;
+      }
+
+      return prev + 2;
+    });
+  }, 100);
+
+  return () => clearInterval(interval);
 }, [screen]);
 
 useEffect(() => {
@@ -704,7 +717,7 @@ alert("Esse exercício ainda está em desenvolvimento 🚧");
 return;
 }
 
-setScreen("squatIntro");
+setScreen("squat");
 setReps(0);
 setRepHistory([]);
 setSessionFinished(false);
@@ -778,10 +791,38 @@ Move<span style={{ color: "#3B82F6" }}>Up</span>
 </div>
 
 <div style={splashLoadingTrackStyle}>
-<div style={splashLoadingBarStyle} />
+  <div
+    style={{
+      ...splashLoadingBarStyle,
+      width: `${loadingProgress}%`,
+      transition: "width 0.1s linear"
+    }}
+  />
 </div>
 
 <p style={splashLoadingTextStyle}>Preparando seu treino...</p>
+{showEnterButton && (
+  <button
+    onClick={() => {
+      setScreen(hasSeenOnboarding ? "home" : "onboarding");
+    }}
+    style={{
+      marginTop: 26,
+      width: 220,
+      height: 56,
+      borderRadius: 18,
+      border: "none",
+      background: "#2563EB",
+      color: "white",
+      fontSize: 18,
+      fontWeight: 700,
+      boxShadow: "0 0 24px rgba(37,99,235,0.45)",
+      animation: "fadeIn 0.4s ease"
+    }}
+  >
+    Entrar
+  </button>
+)}
 </div>
 );
 }
