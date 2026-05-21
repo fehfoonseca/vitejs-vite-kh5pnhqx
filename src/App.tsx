@@ -57,6 +57,21 @@ const [screen, setScreen] = useState<Screen>("splash");
 const [introStep, setIntroStep] = useState(0);
 const [loadingProgress, setLoadingProgress] = useState(0);
 const [showEnterButton, setShowEnterButton] = useState(false);
+const loadingMessages = [
+  "Inicializando IA...",
+  "Carregando biomecânica...",
+  "Preparando análise...",
+  "Quase pronto..."
+];
+
+const loadingMessage =
+  loadingProgress < 30
+    ? loadingMessages[0]
+    : loadingProgress < 60
+    ? loadingMessages[1]
+    : loadingProgress < 90
+    ? loadingMessages[2]
+    : loadingMessages[3];
 const [hasSeenOnboarding, setHasSeenOnboarding] = useState(() => {
   return false;
       });
@@ -780,7 +795,8 @@ src="/logo-symbol.png"
 </div>
 
 <h1 style={splashTitleStyle}>
-Move<span style={{ color: "#3B82F6" }}>Up</span>
+  <span style={{ color: "white" }}>Move</span>
+  <span style={{ color: "#3B82F6" }}>Up</span>
 </h1>
 
 <p style={splashSubtitleStyle}>IA que te move</p>
@@ -800,7 +816,11 @@ Move<span style={{ color: "#3B82F6" }}>Up</span>
   />
 </div>
 
-<p style={splashLoadingTextStyle}>Preparando seu treino...</p>
+{!showEnterButton && (
+  <p style={splashLoadingTextStyle}>
+    {loadingMessage}
+  </p>
+)}
 {showEnterButton && (
   <button
     onClick={() => {
@@ -823,6 +843,38 @@ Move<span style={{ color: "#3B82F6" }}>Up</span>
     Entrar
   </button>
 )}
+<style>
+  {`
+    @keyframes pulseGlow {
+      0% {
+        transform: scale(1);
+        box-shadow: 0 0 28px rgba(37,99,235,0.25);
+      }
+
+      50% {
+        transform: scale(1.04);
+        box-shadow: 0 0 55px rgba(37,99,235,0.55);
+      }
+
+      100% {
+        transform: scale(1);
+        box-shadow: 0 0 28px rgba(37,99,235,0.25);
+      }
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(8px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+  `}
+</style>
 </div>
 );
 }
@@ -830,53 +882,64 @@ Move<span style={{ color: "#3B82F6" }}>Up</span>
 if (screen === "home") {
 return (
 <AppLayout active="home" setScreen={setScreen}>
-<h1 style={{ margin: 0, fontSize: 34 }}>
-Move<span style={{ color: "#3B82F6" }}>Up</span>
-</h1>
+<div style={{ marginBottom: 28 }}>
+  <div
+    style={{
+      color: "#60A5FA",
+      fontSize: 13,
+      fontWeight: 700,
+      letterSpacing: 1.5,
+      textTransform: "uppercase",
+      marginBottom: 10
+    }}
+  >
+    Seu treino de hoje
+  </div>
 
-<p style={{ color: "#A1A1AA", marginTop: 8 }}>
-Escolha seu exercício e treine com mais confiança.
-</p>
+  <h1
+    style={{
+      margin: 0,
+      fontSize: 38,
+      lineHeight: 1,
+      fontWeight: 900,
+      letterSpacing: -1.5
+    }}
+  >
+    <span style={{ color: "white" }}>Move</span>
+    <span style={{ color: "#3B82F6" }}>Up</span>
+  </h1>
+
+  <p
+    style={{
+      color: "#94A3B8",
+      marginTop: 14,
+      fontSize: 16,
+      lineHeight: 1.5,
+      maxWidth: 320,
+      textAlign: "center",
+      margin: "60px auto 0"
+    }}
+  >
+    Escolha um exercício e receba análise biomecânica por IA em tempo real.
+  </p>
+</div>
+
+<div style={{ marginTop: 28 }}>
+
 
 <div
-style={{
-display: "grid",
-gridTemplateColumns: "1fr 1fr",
-gap: 12,
-marginTop: 24
-}}
+  style={{
+    display: "grid",
+    gridTemplateColumns: "1fr 1fr",
+    gap: 12,
+    marginTop: 24
+  }}
 >
-<ExerciseCard
-name="Agachamento"
-emoji="🏋️"
-active={selectedExercise === "Agachamento"}
-available
-onClick={() => setSelectedExercise("Agachamento")}
-/>
-
-<ExerciseCard
-name="Flexão"
-emoji="💪"
-active={selectedExercise === "Flexão"}
-available={false}
-onClick={() => setSelectedExercise("Flexão")}
-/>
-
-<ExerciseCard
-name="Prancha"
-emoji="🧘"
-active={selectedExercise === "Prancha"}
-available={false}
-onClick={() => setSelectedExercise("Prancha")}
-/>
-
-<ExerciseCard
-name="Corrida"
-emoji="🏃"
-active={selectedExercise === "Corrida"}
-available={false}
-onClick={() => setSelectedExercise("Corrida")}
-/>
+  <ExerciseCard name="Agachamento" emoji="🏋️" active={selectedExercise === "Agachamento"} available onClick={() => setSelectedExercise("Agachamento")} />
+  <ExerciseCard name="Flexão" emoji="💪" active={selectedExercise === "Flexão"} available={false} onClick={() => setSelectedExercise("Flexão")} />
+  <ExerciseCard name="Prancha" emoji="🧘" active={selectedExercise === "Prancha"} available={false} onClick={() => setSelectedExercise("Prancha")} />
+  <ExerciseCard name="Corrida" emoji="🏃" active={selectedExercise === "Corrida"} available={false} onClick={() => setSelectedExercise("Corrida")} />
+</div>
 </div>
 
 <button onClick={startExercise} style={primaryButtonStyle}>
@@ -1367,19 +1430,56 @@ return (
 <button
 onClick={onClick}
 style={{
-background: active ? "#1E293B" : "#0F172A",
-border: active ? "2px solid #3B82F6" : "1px solid #1E293B",
-borderRadius: 18,
-padding: 16,
-color: "white",
-textAlign: "left",
-minHeight: 110
+  flex: 1,
+  minHeight: 80,
+  borderRadius: 22,
+  padding: 8,
+  background:
+    active
+      ? "linear-gradient(145deg, rgba(37,99,235,0.22), rgba(15,23,42,0.96))"
+      : "linear-gradient(145deg, #0F172A, #020617)",
+  border:
+    active
+      ? "1px solid rgba(96,165,250,0.85)"
+      : "1px solid rgba(148,163,184,0.12)",
+  display: "flex",
+  flexDirection: "column",
+  justifyContent: "space-between",
+  transition: "all 0.25s ease",
+  boxShadow:
+    active
+      ? "0 0 28px rgba(37,99,235,0.28)"
+      : "0 0 0 rgba(0,0,0,0)",
+  position: "relative",
+  overflow: "hidden"
 }}
 >
-<div style={{ fontSize: 28 }}>{emoji}</div>
-<div style={{ fontWeight: "bold", marginTop: 10 }}>{name}</div>
-<div style={{ color: available ? "#60A5FA" : "#A1A1AA", fontSize: 12 }}>
-{available ? "Disponível" : "Em breve"}
+<div
+  style={{
+    fontSize: 28,
+    marginBottom: 10
+  }}
+>
+  {emoji}
+</div>
+<div
+  style={{
+    fontSize: 18,
+    fontWeight: 800,
+    color: "white",
+    marginBottom: 6
+  }}
+>
+  {name}
+</div>
+<div
+  style={{
+    color: available ? "#60A5FA" : "#94A3B8",
+    fontSize: 14,
+    fontWeight: 500
+  }}
+>
+  {available ? "Disponível" : "Em breve"}
 </div>
 </button>
 );
@@ -1475,17 +1575,18 @@ top: "26%"
 };
 
 const splashLogoCircleStyle: React.CSSProperties = {
-width: 150,
-height: 150,
-borderRadius: 36,
-background: "linear-gradient(145deg, #0F172A, #020617)",
-border: "1px solid rgba(96,165,250,0.45)",
-display: "flex",
-justifyContent: "center",
-alignItems: "center",
-position: "relative",
-boxShadow: "0 0 40px rgba(37,99,235,0.35)",
-marginBottom: 26
+  width: 150,
+  height: 150,
+  borderRadius: 36,
+  background: "linear-gradient(145deg, #0F172A, #020617)",
+  border: "1px solid rgba(96,165,250,0.45)",
+  display: "flex",
+  justifyContent: "center",
+  alignItems: "center",
+  position: "relative",
+  boxShadow: "0 0 40px rgba(37,99,235,0.35)",
+  marginBottom: 26,
+  animation: "pulseGlow 1.8s ease-in-out infinite"
 };
 
 
@@ -1500,7 +1601,7 @@ fontWeight: 900
 };
 
 const splashSubtitleStyle: React.CSSProperties = {
-marginTop: 8,
+marginTop: 22,
 color: "#CBD5E1",
 letterSpacing: 4,
 textTransform: "uppercase",
