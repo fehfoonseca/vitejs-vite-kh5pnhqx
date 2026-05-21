@@ -1028,10 +1028,8 @@ if (screen === "onboarding") {
         : introStep === 2
         ? "160%"
         : "120%",
-    maxHeight:
-      introStep === 0
-        ? 330
-        : 360,
+        maxHeight: "none",
+
     height: "auto",
     objectFit: "contain"
   }}
