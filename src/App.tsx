@@ -1022,16 +1022,28 @@ if (screen === "onboarding") {
   alt="onboarding"
   style={{
     ...onboardingMockupImageStyle,
+
     width:
       introStep === 1
-        ? "20%"
+        ? "50%"
         : introStep === 2
         ? "50%"
         : "80%",
-        maxHeight: "none",
 
-    height: "auto",
-    objectFit: "contain"
+    marginTop:
+      introStep === 1
+        ? 40
+        : 0,
+
+        transform:
+        introStep === 2
+          ? "scale(2.35)"
+          : introStep === 1
+          ? "scale(2.35)"
+          : "none",
+
+    objectFit: "contain",
+    pointerEvents: "none"
   }}
 />
 </div>
@@ -1673,19 +1685,15 @@ const premiumPageStyle: React.CSSProperties = {
                       };
                       
                       const onboardingImageFrameStyle: React.CSSProperties = {
-                        flex: 1,
-                        minHeight: 0,
-                        display: "flex",
-                        justifyContent: "center",
-                        alignItems: "center",
-                        marginTop: 12,
-                        marginBottom: 8,
-                        border: "2px solid rgba(37,99,235,0.75)",
-                        borderRadius: 22,
-                        padding: 8,
-                        boxShadow: "0 0 22px rgba(37,99,235,0.22)",
-                        overflow: "hidden"
-                      };
+  flex: 1,
+  minHeight: 0,
+  display: "flex",
+  justifyContent: "center",
+  alignItems: "center",
+  marginTop: 12,
+  marginBottom: 20,
+  overflow: "hidden"
+};
                       
                       const onboardingMockupImageStyle: React.CSSProperties = {
                         width: 300,
