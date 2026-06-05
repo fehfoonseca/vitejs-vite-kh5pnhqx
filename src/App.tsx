@@ -79,6 +79,7 @@ export default function App() {
   });
   const [selectedExercise, setSelectedExercise] = useState('Agachamento');
   const [historyExercise, setHistoryExercise] = useState('');
+  const [progressExercise, setProgressExercise] = useState('');
   const [userProfile, setUserProfile] = useState(() => {
     const saved = localStorage.getItem('moveup_profile');
 
@@ -1168,7 +1169,13 @@ export default function App() {
   }
 
   if (screen === 'progress') {
-    const chartData = sessionHistory
+    const filteredProgress = sessionHistory.filter((item) => {
+      const itemExercise = item.exercise || 'Agachamento';
+      return itemExercise === progressExercise;
+    });
+
+    
+    const chartData = filteredProgress
       .slice()
       .reverse()
       .map((item, index) => ({
@@ -1177,33 +1184,76 @@ export default function App() {
         profundidade: item.averageDepth,
       }));
 
-    const totalSessions = sessionHistory.length;
+      const totalSessions = filteredProgress.length;
 
-    const totalReps =
-      sessionHistory.length > 0
-        ? sessionHistory.reduce((acc, item) => acc + item.reps, 0)
-        : 0;
+      
 
-    const bestScore =
-      sessionHistory.length > 0
-        ? Math.max(...sessionHistory.map((item) => item.averageScore))
-        : 0;
+      const totalReps =
+        filteredProgress.length > 0
+          ? filteredProgress.reduce((acc, item) => acc + item.reps, 0)
+          : 0;
+      
+      const bestScore =
+        filteredProgress.length > 0
+          ? Math.max(...filteredProgress.map((item) => item.averageScore))
+          : 0;
+      
+      const overallAverage =
+        filteredProgress.length > 0
+          ? Math.round(
+              filteredProgress.reduce(
+                (acc, item) => acc + item.averageScore,
+                0
+              ) / filteredProgress.length
+            )
+          : 0;
 
-    const overallAverage =
-      sessionHistory.length > 0
-        ? Math.round(
-            sessionHistory.reduce((acc, item) => acc + item.averageScore, 0) /
-              sessionHistory.length
-          )
-        : 0;
+          return (
+            <AppLayout active="progress" setScreen={setScreen}>
+              <h1
+                style={{
+                  margin: 0,
+                  color: 'white',
+                  fontSize: 42,
+                  fontWeight: 900,
+                  textAlign: 'center',
+                }}
+              >
+                📈 Evolução
+              </h1>
+          
+              <p
+                style={{
+                  color: '#94A3B8',
+                  marginTop: 10,
+                  marginBottom: 18,
+                  textAlign: 'center',
+                }}
+              >
+                Acompanhe sua evolução treino após treino.
+              </p>
+          
+              <select
+                value={progressExercise}
+                onChange={(e) => setProgressExercise(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: 12,
+                  borderRadius: 12,
+                  background: '#0F172A',
+                  color: 'white',
+                  border: '1px solid #1E293B',
+                  marginBottom: 18,
+                }}
+              >
+                <option value="">Selecione o exercício</option>
+                <option value="Agachamento">Agachamento</option>
+                <option value="Flexão">Flexão</option>
+                <option value="Prancha">Prancha</option>
+                <option value="Corrida">Corrida</option>
+              </select>
 
-    return (
-      <AppLayout active="progress" setScreen={setScreen}>
-        <h1 style={{ marginBottom: 6 }}>📈 Evolução</h1>
-
-        <p style={{ color: '#A1A1AA', marginTop: 0 }}>
-          Acompanhe sua evolução treino após treino.
-        </p>
+        
 
         <div style={statsGridStyle}>
           <MetricCard title="Séries" value={`${totalSessions}`} />
@@ -1213,15 +1263,19 @@ export default function App() {
         </div>
 
         <div style={chartCardStyle}>
-          <div style={{ fontWeight: 'bold', marginBottom: 12 }}>
-            Score por treino
-          </div>
+  <div style={{ fontWeight: 'bold', marginBottom: 12 }}>
+    Score por treino
+  </div>
 
-          {chartData.length === 0 ? (
-            <p style={{ color: '#A1A1AA' }}>
-              Finalize uma série para ver sua evolução.
-            </p>
-          ) : (
+  {progressExercise === '' ? (
+    <p style={{ color: '#A1A1AA' }}>
+      Selecione um exercício para ver sua evolução.
+    </p>
+  ) : chartData.length === 0 ? (
+    <p style={{ color: '#A1A1AA' }}>
+      Nenhuma série salva para este exercício.
+    </p>
+  ) : (
             <div style={{ width: '100%', height: 240 }}>
               <ResponsiveContainer>
                 <LineChart data={chartData}>
@@ -1384,35 +1438,51 @@ export default function App() {
       <div style={mobilePageStyle}>
         <div style={appShellStyle}>
           <div style={appContentStyle}>
-          <h1
-  style={{
-    margin: 0,
-    color: 'white',
-    fontSize: 42,
-    fontWeight: 900,
-    textAlign: 'center',
-  }}
->
-  👤 Perfil
-</h1>
+            <h1
+              style={{
+                margin: 0,
+                color: 'white',
+                fontSize: 42,
+                fontWeight: 900,
+                textAlign: 'center',
+              }}
+            >
+              👤 Perfil
+            </h1>
 
-<p
-  style={{
-    color: '#94A3B8',
-    textAlign: 'center',
-    marginTop: 10,
-    marginBottom: 24,
-  }}
->
-  Vamos configurar seu perfil rapidamente.
-</p>
+            <p
+              style={{
+                color: '#94A3B8',
+                textAlign: 'center',
+                marginTop: 10,
+                marginBottom: 24,
+              }}
+            >
+              Vamos configurar seu perfil rapidamente.
+            </p>
 
             <div style={listCardStyle}>
               {profileStep === 0 && (
                 <>
-                  <h2 style={{ marginTop: 0 }}>Como podemos te chamar?</h2>
+                  <h2
+                    style={{
+                      marginTop: 0,
+                      color: 'white',
+                      textAlign: 'center',
+                      fontSize: 28,
+                      fontWeight: 800,
+                    }}
+                  >
+                    Como podemos te chamar?
+                  </h2>
 
-                  <p style={{ color: '#A1A1AA', lineHeight: 1.5 }}>
+                  <p
+                    style={{
+                      color: '#A1A1AA',
+                      lineHeight: 1.5,
+                      textAlign: 'center',
+                    }}
+                  >
                     Digite seu nome para personalizar sua experiência.
                   </p>
 
@@ -1444,7 +1514,13 @@ export default function App() {
                 <>
                   <h2 style={{ marginTop: 0 }}>Qual é a sua idade?</h2>
 
-                  <p style={{ color: '#A1A1AA', lineHeight: 1.5 }}>
+                  <p
+                    style={{
+                      color: '#A1A1AA',
+                      lineHeight: 1.5,
+                      textAlign: 'center',
+                    }}
+                  >
                     Informe sua idade para completar seu perfil.
                   </p>
 
@@ -1475,9 +1551,25 @@ export default function App() {
 
               {profileStep === 2 && (
                 <>
-                  <h2 style={{ marginTop: 0 }}>Qual é o seu objetivo?</h2>
+                  <h2
+                    style={{
+                      marginTop: 0,
+                      color: 'white',
+                      textAlign: 'center',
+                      fontSize: 28,
+                      fontWeight: 800,
+                    }}
+                  >
+                    Qual é o seu objetivo?
+                  </h2>
 
-                  <p style={{ color: '#A1A1AA', lineHeight: 1.5 }}>
+                  <p
+                    style={{
+                      color: '#A1A1AA',
+                      lineHeight: 1.5,
+                      textAlign: 'center',
+                    }}
+                  >
                     Escolha o objetivo que mais combina com você.
                   </p>
 
