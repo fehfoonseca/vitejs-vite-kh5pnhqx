@@ -1096,7 +1096,41 @@ export default function App() {
     });
     return (
       <AppLayout active="history" setScreen={setScreen}>
-        <h1>📊 Histórico</h1>
+        <div
+          style={{
+            width: 78,
+            height: 78,
+            borderRadius: 28,
+            background: 'linear-gradient(145deg, #2563EB, #0F172A)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            margin: '0 auto 20px',
+            boxShadow: '0 0 30px rgba(37,99,235,0.35)',
+          }}
+        >
+          <div
+            style={{
+              transform: 'scale(1.8)',
+              color: 'white',
+              marginTop: 12,
+            }}
+          >
+            <HistoryIcon />
+          </div>
+        </div>
+
+        <h1
+          style={{
+            margin: '0 0 24px 0',
+            color: 'white',
+            fontSize: 42,
+            fontWeight: 900,
+            textAlign: 'center',
+          }}
+        >
+          Histórico
+        </h1>
 
         <select
           value={historyExercise}
@@ -1174,7 +1208,6 @@ export default function App() {
       return itemExercise === progressExercise;
     });
 
-    
     const chartData = filteredProgress
       .slice()
       .reverse()
@@ -1184,76 +1217,94 @@ export default function App() {
         profundidade: item.averageDepth,
       }));
 
-      const totalSessions = filteredProgress.length;
+    const totalSessions = filteredProgress.length;
 
-      
+    const totalReps =
+      filteredProgress.length > 0
+        ? filteredProgress.reduce((acc, item) => acc + item.reps, 0)
+        : 0;
 
-      const totalReps =
-        filteredProgress.length > 0
-          ? filteredProgress.reduce((acc, item) => acc + item.reps, 0)
-          : 0;
-      
-      const bestScore =
-        filteredProgress.length > 0
-          ? Math.max(...filteredProgress.map((item) => item.averageScore))
-          : 0;
-      
-      const overallAverage =
-        filteredProgress.length > 0
-          ? Math.round(
-              filteredProgress.reduce(
-                (acc, item) => acc + item.averageScore,
-                0
-              ) / filteredProgress.length
-            )
-          : 0;
+    const bestScore =
+      filteredProgress.length > 0
+        ? Math.max(...filteredProgress.map((item) => item.averageScore))
+        : 0;
 
-          return (
-            <AppLayout active="progress" setScreen={setScreen}>
-              <h1
-                style={{
-                  margin: 0,
-                  color: 'white',
-                  fontSize: 42,
-                  fontWeight: 900,
-                  textAlign: 'center',
-                }}
-              >
-                📈 Evolução
-              </h1>
-          
-              <p
-                style={{
-                  color: '#94A3B8',
-                  marginTop: 10,
-                  marginBottom: 18,
-                  textAlign: 'center',
-                }}
-              >
-                Acompanhe sua evolução treino após treino.
-              </p>
-          
-              <select
-                value={progressExercise}
-                onChange={(e) => setProgressExercise(e.target.value)}
-                style={{
-                  width: '100%',
-                  padding: 12,
-                  borderRadius: 12,
-                  background: '#0F172A',
-                  color: 'white',
-                  border: '1px solid #1E293B',
-                  marginBottom: 18,
-                }}
-              >
-                <option value="">Selecione o exercício</option>
-                <option value="Agachamento">Agachamento</option>
-                <option value="Flexão">Flexão</option>
-                <option value="Prancha">Prancha</option>
-                <option value="Corrida">Corrida</option>
-              </select>
+    const overallAverage =
+      filteredProgress.length > 0
+        ? Math.round(
+            filteredProgress.reduce((acc, item) => acc + item.averageScore, 0) /
+              filteredProgress.length
+          )
+        : 0;
 
-        
+    return (
+      <AppLayout active="progress" setScreen={setScreen}>
+        <div
+          style={{
+            width: 78,
+            height: 78,
+            borderRadius: 28,
+            background: 'linear-gradient(145deg, #2563EB, #0F172A)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            margin: '0 auto 20px',
+            boxShadow: '0 0 30px rgba(37,99,235,0.35)',
+          }}
+        >
+          <div
+            style={{
+              transform: 'scale(1.8)',
+              color: 'white',
+              marginTop: 8,
+            }}
+          >
+            <ChartIcon />
+          </div>
+        </div>
+
+        <h1
+          style={{
+            margin: '0 0 24px 0',
+            color: 'white',
+            fontSize: 42,
+            fontWeight: 900,
+            textAlign: 'center',
+          }}
+        >
+          Evolução
+        </h1>
+
+        <p
+          style={{
+            color: '#94A3B8',
+            marginTop: 10,
+            marginBottom: 18,
+            textAlign: 'center',
+          }}
+        >
+          Acompanhe sua evolução treino após treino.
+        </p>
+
+        <select
+          value={progressExercise}
+          onChange={(e) => setProgressExercise(e.target.value)}
+          style={{
+            width: '100%',
+            padding: 12,
+            borderRadius: 12,
+            background: '#0F172A',
+            color: 'white',
+            border: '1px solid #1E293B',
+            marginBottom: 18,
+          }}
+        >
+          <option value="">Selecione o exercício</option>
+          <option value="Agachamento">Agachamento</option>
+          <option value="Flexão">Flexão</option>
+          <option value="Prancha">Prancha</option>
+          <option value="Corrida">Corrida</option>
+        </select>
 
         <div style={statsGridStyle}>
           <MetricCard title="Séries" value={`${totalSessions}`} />
@@ -1263,19 +1314,19 @@ export default function App() {
         </div>
 
         <div style={chartCardStyle}>
-  <div style={{ fontWeight: 'bold', marginBottom: 12 }}>
-    Score por treino
-  </div>
+          <div style={{ fontWeight: 'bold', marginBottom: 12 }}>
+            Score por treino
+          </div>
 
-  {progressExercise === '' ? (
-    <p style={{ color: '#A1A1AA' }}>
-      Selecione um exercício para ver sua evolução.
-    </p>
-  ) : chartData.length === 0 ? (
-    <p style={{ color: '#A1A1AA' }}>
-      Nenhuma série salva para este exercício.
-    </p>
-  ) : (
+          {progressExercise === '' ? (
+            <p style={{ color: '#A1A1AA' }}>
+              Selecione um exercício para ver sua evolução.
+            </p>
+          ) : chartData.length === 0 ? (
+            <p style={{ color: '#A1A1AA' }}>
+              Nenhuma série salva para este exercício.
+            </p>
+          ) : (
             <div style={{ width: '100%', height: 240 }}>
               <ResponsiveContainer>
                 <LineChart data={chartData}>
@@ -1438,6 +1489,18 @@ export default function App() {
       <div style={mobilePageStyle}>
         <div style={appShellStyle}>
           <div style={appContentStyle}>
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'center',
+                marginBottom: 12,
+                color: '#60A5FA',
+                transform: 'scale(2)',
+              }}
+            >
+              <UserIcon />
+            </div>
+
             <h1
               style={{
                 margin: 0,
@@ -1447,7 +1510,7 @@ export default function App() {
                 textAlign: 'center',
               }}
             >
-              👤 Perfil
+              Perfil
             </h1>
 
             <p
@@ -1673,7 +1736,14 @@ export default function App() {
               boxShadow: '0 0 30px rgba(37,99,235,0.35)',
             }}
           >
-            👤
+            <div
+              style={{
+                transform: 'scale(1.8)',
+                color: 'white',
+              }}
+            >
+              <UserIcon />
+            </div>
           </div>
 
           <h1
@@ -1996,35 +2066,29 @@ export default function App() {
     );
   }
 
-  function BottomNav({
-    active,
-    setScreen,
-  }: {
-    active: Screen;
-    setScreen: (screen: Screen) => void;
-  }) {
+  function BottomNav({ active, setScreen }: any) {
     return (
       <div style={bottomNavStyle}>
         <NavButton
-          icon="🏠"
+          icon={<DumbbellIcon />}
           label="Home"
           active={active === 'home'}
           onClick={() => setScreen('home')}
         />
         <NavButton
-          icon="📊"
+          icon={<HistoryIcon />}
           label="Histórico"
           active={active === 'history'}
           onClick={() => setScreen('history')}
         />
         <NavButton
-          icon="📈"
+          icon={<ChartIcon />}
           label="Evolução"
           active={active === 'progress'}
           onClick={() => setScreen('progress')}
         />
         <NavButton
-          icon="👤"
+          icon={<UserIcon />}
           label="Perfil"
           active={active === 'profile'}
           onClick={() => setScreen('profile')}
@@ -2137,6 +2201,97 @@ export default function App() {
           {value}
         </div>
       </div>
+    );
+  }
+
+  function IconSvg({ children }: any) {
+    return (
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+        {children}
+      </svg>
+    );
+  }
+
+  function DumbbellIcon() {
+    return (
+      <IconSvg>
+        <path
+          d="M6 7v10M18 7v10M3 10v4M21 10v4M6 12h12"
+          stroke="currentColor"
+          strokeWidth="2.2"
+          strokeLinecap="round"
+        />
+      </IconSvg>
+    );
+  }
+
+  function HistoryIcon() {
+    return (
+      <IconSvg>
+        <path
+          d="M3 12a9 9 0 1 0 3-6.7"
+          stroke="currentColor"
+          strokeWidth="2.2"
+          strokeLinecap="round"
+        />
+        <path
+          d="M3 4v5h5"
+          stroke="currentColor"
+          strokeWidth="2.2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <path
+          d="M12 7v5l3 2"
+          stroke="currentColor"
+          strokeWidth="2.2"
+          strokeLinecap="round"
+        />
+      </IconSvg>
+    );
+  }
+
+  function ChartIcon() {
+    return (
+      <IconSvg>
+        <path
+          d="M4 19V5"
+          stroke="currentColor"
+          strokeWidth="2.2"
+          strokeLinecap="round"
+        />
+        <path
+          d="M4 19h16"
+          stroke="currentColor"
+          strokeWidth="2.2"
+          strokeLinecap="round"
+        />
+        <path
+          d="M7 15l4-4 3 3 5-7"
+          stroke="currentColor"
+          strokeWidth="2.2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </IconSvg>
+    );
+  }
+
+  function UserIcon() {
+    return (
+      <IconSvg>
+        <path
+          d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z"
+          stroke="currentColor"
+          strokeWidth="2.2"
+        />
+        <path
+          d="M4 21a8 8 0 0 1 16 0"
+          stroke="currentColor"
+          strokeWidth="2.2"
+          strokeLinecap="round"
+        />
+      </IconSvg>
     );
   }
 }
